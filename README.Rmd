@@ -107,6 +107,7 @@ data.frame(sr$opchar)
 - an indicator whether there was any stop (*anystop*) and a stop for futility or efficacy (*anystop_fut* and *anystop_eff*).
 
 *opchar* is a numeric vector with operating characteristics over all simulated trials including the
+
 - average estimates in each group, effect (point estimate, *pe*) and (1-alpha) confidence limits (*lci*, *uci*).
 - probability for a significant trial (*psig*, the power or type I error, depending on the assumptions).
 - probability for any stop (*pstop*) and a stop for futility or efficacy (*pstop_fut*, *pstop_eff*).
