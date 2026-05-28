@@ -2,5 +2,7 @@
 
 export(ADevalfun)
 export(ADsimfun)
+export(launch_ADSim_app)
+importFrom(shiny,runApp)
 importFrom(stats,qnorm)
 importFrom(stats,rbinom)

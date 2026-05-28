@@ -1,6 +1,6 @@
 Package: AdaptiveDesignSim
 Title: Simulations of clinical trials with adaptive designs
-Version: 0.0.1
+Version: 0.0.2
 Authors@R: 
 	person("Lukas", "Bütikofer", role = c("cre", "aut"),
     email = "lukas.buetikofer@unibe.ch")
@@ -13,5 +13,6 @@ Depends:
     R (>= 2.10)
 Imports:
 	pairwiseCI,
-	stats
+	stats,
+	shiny
 	

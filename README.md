@@ -8,7 +8,7 @@
 [![R-CMD-check](https://github.com/dcr-unibe-ch/AdaptiveDesignSim/workflows/R-CMD-check/badge.svg)](https://github.com/dcr-unibe-ch/AdaptiveDesignSim/actions)
 <!-- badges: end -->
 
-An R package for simulations of clinical trials with adaptive designs,
+An R package for simulations of clinical trials with adaptive designs.
 
 ## Installation
 
@@ -19,76 +19,113 @@ The package can be installed from [GitHub](https://github.com/) with:
 devtools::install_github("dcr-unibe-ch/AdaptiveDesignSim")
 ```
 
-## Binary outcome
+## Simulation
 
 A single trial with one or more interim analyses can be simulated using
 `ADsimfun`. The required options are the sample size in each arm
-(*n01*), the proportion of the outcome in each arm (*p01*), and the
-number of interim analyses (*nia*).
+(**n01**), the proportion of the outcome in each arm (**p01**), and the
+number of interim analyses (**nia**).
+
+Further optional arguments for `ADsimfun` are
+
+- the time point of the interim analysis (**pia**, as number of
+  participants, equally spaced by default),
+- the significance level for the final test (**alpha**, 0.025 by
+  default),
+- the effect measure (**effm**, risk difference or ratio),
+- the direction of the effect (**direct** with *lower* is better or
+  *higher* is better), and
+- the type of confidence interval used for the analysis (**cimethod**,
+  *Wald* or *score*).
+
+Let’s assume
+
+- a trial with a target final sample size of 200 (1:1 allocation),
+- a ‘bad’ binary outcome, which is expected to occur in 40% of the
+  control patient, and
+- a relevant effect would be a decrease by 20%.
+
+We would like to do one interim analysis at half of patients. Single
+simulation under the null and alternative can the be done like that:
 
 ``` r
-ads<-ADsimfun(n01 = c(100,100), p01 = c(0.2, p1=0.4), nia = 1, alpha=0.025)
-data.frame(ads)
-#>                 ads
-#> true_p0   0.2000000
-#> true_p1   0.4000000
-#> true_pe   0.2000000
-#> fa_x0    17.0000000
-#> fa_x1    43.0000000
-#> fa_n0   100.0000000
-#> fa_n1   100.0000000
-#> fa_p0     0.1700000
-#> fa_p1     0.4300000
-#> fa_pe     0.2600000
-#> fa_lci    0.1381981
-#> fa_uci    0.3818019
-#> fa_z     -4.1837643
-#> ia1_x0    6.0000000
-#> ia1_x1   21.0000000
-#> ia1_n0   50.0000000
-#> ia1_n1   50.0000000
-#> ia1_p0    0.1200000
-#> ia1_p1    0.4200000
-#> ia1_pe    0.3000000
-#> ia1_lci   0.1362052
-#> ia1_uci   0.4637948
-#> ia1_z    -3.5897908
+set.seed(12)
+
+simH0<-ADsimfun(n01 = c(100, 100), p01 = c(0.4, p1=0.4), nia = 1, 
+                direct = "lower", alpha = 0.025)
+
+simH1<-ADsimfun(n01 = c(100, 100), p01 = c(0.4, p1=0.2), nia = 1,
+                direct = "lower", alpha = 0.025)
+
+cbind(simH0,simH1)
+#>                simH0        simH1
+#> true_p0   0.40000000   0.40000000
+#> true_p1   0.40000000   0.20000000
+#> true_pe   0.00000000  -0.20000000
+#> fa_x0    36.00000000  41.00000000
+#> fa_x1    43.00000000  17.00000000
+#> fa_n0   100.00000000 100.00000000
+#> fa_n1   100.00000000 100.00000000
+#> fa_p0     0.36000000   0.41000000
+#> fa_p1     0.43000000   0.17000000
+#> fa_pe     0.07000000  -0.24000000
+#> fa_lci   -0.06515227  -0.36129628
+#> fa_uci    0.20515227  -0.11870372
+#> fa_z     -1.01513261   3.87803616
+#> ia1_x0   18.00000000  19.00000000
+#> ia1_x1   27.00000000   9.00000000
+#> ia1_n0   50.00000000  50.00000000
+#> ia1_n1   50.00000000  50.00000000
+#> ia1_p0    0.36000000   0.38000000
+#> ia1_p1    0.54000000   0.18000000
+#> ia1_pe    0.18000000  -0.20000000
+#> ia1_lci  -0.01179627  -0.37158363
+#> ia1_uci   0.37179627  -0.02841637
+#> ia1_z    -1.83941802   2.28455831
 ```
 
-`ADsimfun` returns a numeric vector with the true proportions in both
-arms and point estimate (*true_p0*, *true_p1*, *true_pe*), and, for each
-interim stage (prefix *iax\_*) and the final stage (prefix *fa\_*), the
-simulated number of successes, sample size and observed probabilities
-for both arms (suffix \*\_x0*,* \_x1*,* \_n0*,* \_n1*,* \_p0*,* \_p1*),
-point estimate (suffix* \_pe*), confidence interval (suffix* \_lci\* and
-\*\_uci*) and z-statistic (*\_z\*).
+`ADsimfun` returns a numeric vector with
 
-Further options for `ADsimfun` are
+- the true proportions in both arms (*true_p0*, *true_p1*).
+- the true point estimate (*true_pe*), which is either a risk difference
+  or a log risk ratio (depending on option **effm**).
 
-- the time point of the interim analysis (*pia*, as number of
-  participants, equally spaced by default),
-- the significance level for the final test (*alpha*, 0.025 by default),
-- the effect measure (*effm*, risk difference or ratio),
-- the direction of the effect (*direct* with **lower** is better or
-  **higher** is better), and
-- the type of confidence interval used for the analysis (*cimethod*,
-  **Wald** or **score**).
+And for each interim stage (prefix *iax\_*) and the final stage (prefix
+*fa\_*) the
+
+- simulated number of successes for both arms (suffix *x0*, *x1*),
+- sample size for both arms (suffix *n0*, *n1*),
+- simulated probabilities for both arms (suffix *p0*, *p1*),
+- simulated point estimate (suffix *pe*, either the risk difference or
+  the log risk ratio),
+- confidence interval (suffix *lci* and *uci*), and
+- z-statistic (suffix *z*).
 
 Simulations can be repeated and stacked to generate a data frame that
-can be used with `ADevalfun`.
+can then be used with `ADevalfun`.
 
 ``` r
-simdat <- lapply(1:1000, function(i) 
-    ADsimfun(n01 = c(100,100), p01 = c(0.2, p1=0.4), nia = 1, alpha = 0.025, effm="rd", direct="lower"))
-simdat <- do.call(rbind, simdat)
+set.seed(12)
+
+simdatH0 <- lapply(1:1000, function(i) 
+    ADsimfun(n01 = c(100,100), p01 = c(0.2, p1=0.2), nia = 1, 
+             alpha = 0.025, direct="lower"))
+simdatH0 <- do.call(rbind, simdatH0)
+
+simdatH1 <- lapply(1:1000, function(i) 
+    ADsimfun(n01 = c(100,100), p01 = c(0.4, p1=0.2), nia = 1,
+             alpha = 0.025, direct="lower"))
+simdatH1 <- do.call(rbind, simdatH1)
 ```
 
+## Evaluation
+
 For the `ADevalfun` thresholds for stopping at each interim analysis
-have to be defined via *zcutoff*, a data frame with one row per interim
+have to be defined via **zcutoff**, a matrix with one row per interim
 analysis and a column for stopping for futility and efficacy. A stop for
 futility will be assumed if the observed Z-statistic at interim is lower
 than the threshold in column 1, a stop for efficacy if the observed
-Z-statistic at interim is higher than the threshold in column 2. NA
+Z-statistic at interim is higher than the threshold in column 2. *NA*
 would mean no stopping at the respective interim analysis.
 
 Let’s assume we have one interim analysis (as specified in the
@@ -96,46 +133,50 @@ Let’s assume we have one interim analysis (as specified in the
 efficacy if Z\>2:
 
 ``` r
-zcutoff<-t(data.frame(c(0,2)))
+zcutoff<-matrix(c(0,2),1,2)
 zcutoff
-#>         [,1] [,2]
-#> c.0..2.    0    2
+#>      [,1] [,2]
+#> [1,]    0    2
 ```
 
 ``` r
-sr<-ADevalfun(simdat = simdat, zcutoff = zcutoff)
-data.frame(sr$opchar)
-#>              sr.opchar
-#> true_p0     0.20000000
-#> true_p1     0.40000000
-#> true_pe     0.20000000
-#> av_p0       0.19966000
-#> av_p1       0.39856000
-#> av_pe       0.19890000
-#> av_lci      0.02674162
-#> av_uci      0.37105838
-#> psig        0.00000000
-#> pstop       0.97800000
-#> pstop_fut   0.97800000
-#> pstop_eff   0.00000000
-#> avn       102.20000000
-#> minn      100.00000000
-#> maxn      200.00000000
-#> bias       -0.00110000
-#> sd          0.08849645
-#> mse         0.00782500
-#> coverage    0.94700000
+resH0<-ADevalfun(simdat = simdatH0, zcutoff = zcutoff)
+
+resH1<-ADevalfun(simdat = simdatH1, zcutoff = zcutoff)
+
+cbind(resH0$opchar,resH1$opchar)
+#>                   [,1]         [,2]
+#> true_p0     0.20000000   0.40000000
+#> true_p1     0.20000000   0.20000000
+#> true_pe     0.00000000  -0.20000000
+#> av_p0       0.18903000   0.40620000
+#> av_p1       0.20960000   0.19119000
+#> av_pe       0.02057000  -0.21501000
+#> av_lci     -0.11190859  -0.36713971
+#> av_uci      0.15304859  -0.06288029
+#> psig        0.03400000   0.88800000
+#> pstop       0.50600000   0.59600000
+#> pstop_fut   0.48800000   0.01200000
+#> pstop_eff   0.01800000   0.58400000
+#> avn       149.40000000 140.40000000
+#> minn      100.00000000 100.00000000
+#> maxn      200.00000000 200.00000000
+#> bias        0.02057000  -0.01501000
+#> sd          0.07067227   0.07910662
+#> mse         0.00541270   0.00647690
+#> coverage    0.92800000   0.93700000
 ```
 
 `ADevalfun` returns a list with the evaluations for each repetition
-(*rawdata*) and the summarised operating characteristics (*opchar*).
+(*rawdata*) and the summarized operating characteristics (*opchar*).
 
 *rawdata* is a data frame with the elements from `ADsimfun` plus
 
-- the final proportions point estimate and confidence interval at study
-  end (which could be the interim or final stage),
-- the time point of the first stop (*tstop*, could be for futility or
-  efficacy),  
+- the observed proportions, effect and confidence interval at study end,
+  which could be at an interim or the final stage (*obs_p0*, *obs_p1*,
+  *obs_pe*, *obs_lci*, *obs_uci*),
+- the time point of the first stop for either futility or efficacy
+  (*tstop*),  
   and of the first stop for futility and efficacy (*tstop_fut* and
   *tstop_eff*),
 - the final sample size (*neff*), and
@@ -143,13 +184,18 @@ data.frame(sr$opchar)
   futility or efficacy (*anystop_fut* and *anystop_eff*).
 
 *opchar* is a numeric vector with operating characteristics over all
-simulated trials including the - average estimates in each group, effect
-(point estimate, *pe*) and (1-alpha) confidence limits (*lci*, *uci*). -
-probability for a significant trial (*psig*, the power or type I error,
-depending on the assumptions). - probability for any stop (*pstop*) and
-a stop for futility or efficacy (*pstop_fut*, *pstop_eff*). - average,
-minimum and maximum sample size (avn, minn, maxn). - bias (average of
-estimate minus true value). - standard deviation (*sd*) of the point
-estimate. - mean squared error (*mse*, average of the squared difference
-between estimate and true value), and - coverage (proportion of
-confidence intervals including the true value).
+simulated trials including the
+
+- average estimates in each group, effect (point estimate, *pe*) and
+  (1-alpha) confidence limits (*lci*, *uci*),
+- probability for a significant trial (*psig*, the power or type I
+  error, depending on the assumptions),
+- probability for any stop (*pstop*) and a stop for futility or efficacy
+  (*pstop_fut*, *pstop_eff*),
+- average, minimum and maximum sample size (avn, minn, maxn),
+- bias (average of estimate minus true value),
+- standard deviation (*sd*) of the point estimate,
+- mean squared error (*mse*, average of the squared difference between
+  estimate and true value), and
+- coverage (proportion of confidence intervals including the true
+  value).

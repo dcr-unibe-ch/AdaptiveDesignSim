@@ -4,7 +4,7 @@
 #' Function to evaluate operating characteristics of trials simulated via ADsimfun
 #'
 #' @param simdat matrix or data.frame of multiple runs of ADsimfun
-#' @param zcutoff data frame with the cut-offs on the z-statstics at interim.
+#' @param zcutoff a matrix (or data frame) with the cut-offs on the z-statstics at interim.
 #'  One row per interim analysis and a column for stop for futilty and efficacy (with NA if not planned)
 #'
 #' @returns A list with the evaluation for each repetition (**rawdata**) and the summarized operating characteristics (**opchar**).
@@ -53,12 +53,12 @@ ADevalfun<-function(simdat, zcutoff) {
 
 	resi<-data.frame(simdat)
 
-	resi$p0f<-resi$fa_x0/resi$fa_n0
-	resi$p1f<-resi$fa_x1/resi$fa_n1
+	resi$obs_p0<-resi$fa_x0/resi$fa_n0
+	resi$obs_p1<-resi$fa_x1/resi$fa_n1
 
-	resi$pef<-resi$fa_pe
-	resi$pef_lci<-resi$fa_lci
-	resi$pef_uci<-resi$fa_uci
+	resi$obs_pe<-resi$fa_pe
+	resi$obs_lci<-resi$fa_lci
+	resi$obs_uci<-resi$fa_uci
 
 	if (nia>0) {
 		sel<-data.frame(matrix(NA,nrow(resi),nia))
@@ -85,12 +85,12 @@ ADevalfun<-function(simdat, zcutoff) {
 		for (i in (1:nia)) {
 		  si<-!is.na(resi$tstop) & resi$tstop==i
 
-		  resi$p0f[si]<-resi[si,paste0("ia",i,"_x0")]/resi[si,paste0("ia",i,"_n0")]
-		  resi$p1f[si]<-resi[si,paste0("ia",i,"_x1")]/resi[si,paste0("ia",i,"_n1")]
+		  resi$obs_p0[si]<-resi[si,paste0("ia",i,"_x0")]/resi[si,paste0("ia",i,"_n0")]
+		  resi$obs_p1[si]<-resi[si,paste0("ia",i,"_x1")]/resi[si,paste0("ia",i,"_n1")]
 
-		  resi$pef[si]<-resi[si,paste0("ia",i,"_pe")]
-		  resi$pef_lci[si]<-resi[si,paste0("ia",i,"_lci")]
-		  resi$pef_uci[si]<-resi[si,paste0("ia",i,"_uci")]
+		  resi$obs_pe[si]<-resi[si,paste0("ia",i,"_pe")]
+		  resi$obs_lci[si]<-resi[si,paste0("ia",i,"_lci")]
+		  resi$obs_uci[si]<-resi[si,paste0("ia",i,"_uci")]
 
 		  niobs<-mean(resi[,paste0("ia",i,"_n0")] + resi[,paste0("ia",i,"_n1")])
 		  resi$neff[si]<-niobs
@@ -114,16 +114,16 @@ ADevalfun<-function(simdat, zcutoff) {
 
 	resi$anystop<-factor(resi$anystop,levels=c("Not stopped","Stopped for futility","Stopped for efficacy"))
 
-	av_p0<-mean(resi$p0f)
-	av_p1<-mean(resi$p1f)
-	av_pe<-mean(resi$pef)
-	av_lci<-mean(resi$pef_lci)
-	av_uci<-mean(resi$pef_uci)
+	av_p0<-mean(resi$obs_p0)
+	av_p1<-mean(resi$obs_p1)
+	av_pe<-mean(resi$obs_pe)
+	av_lci<-mean(resi$obs_lci)
+	av_uci<-mean(resi$obs_uci)
 
 	if (direct=="lower") {
-		pwr<-mean(resi$pef_uci<0)
+		pwr<-mean(resi$obs_uci<0)
 	} else {
-		pwr<-mean(resi$pef_lci>0)
+		pwr<-mean(resi$obs_lci>0)
 	}
 	pstop<-mean(resi$anystop %in% c("Stopped for futility","Stopped for efficacy"))
 	pstopfut<-mean(resi$anystop %in% c("Stopped for futility"))
@@ -131,10 +131,10 @@ ADevalfun<-function(simdat, zcutoff) {
 	avn<-mean(resi$neff)
 	minn<-min(resi$neff)
 	maxn<-max(resi$neff)
-	bias<-mean(resi$pef - rdt)
-	sd<-sd(resi$pef)
-	mse<-mean((resi$pef - rdt)^2)
-	coverage<-mean(resi$pef_lci<rdt & resi$pef_uci>rdt)
+	bias<-mean(resi$obs_pe - rdt)
+	sd<-sd(resi$obs_pe)
+	mse<-mean((resi$obs_pe - rdt)^2)
+	coverage<-mean(resi$obs_lci<rdt & resi$obs_uci>rdt)
 
 	op<-c(tp0,tp1,rdt,
 		av_p0,av_p1,av_pe,av_lci,av_uci,

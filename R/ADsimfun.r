@@ -10,8 +10,8 @@
 #' @param pia Optional vector of length nia with the time points (number of patients) of the interim analyses,
 #' 		if Null, equal spacing is assumed
 #' @param alpha Alpha level for final analysis
-#' @param effm Effect measure, "rd" (risk differnce) or "rr" (risk ratio)
 #' @param direct Direction of effect, "lower" (lower is better) or higher ("higher is better")
+#' @param effm Effect measure, "rd" (risk differnce) or "rr" (risk ratio)
 #' @param cimethod Confidence interval used for analysis, "Wald" or "score".
 #'
 #' @returns Numeric vector with true proportions in both arms and point estimate (true_p0, true_p1, true_pe),
@@ -35,7 +35,7 @@
 #'   direct="higher", effm="rd")
 
 
-ADsimfun<-function(n01, p01, nia, pia = NULL, alpha = 0.025, effm = c("rd","rr"), direct = c("lower","higher"),
+ADsimfun<-function(n01, p01, nia, pia = NULL, alpha = 0.025, direct = c("lower","higher"), effm = c("rd","rr"),
 	cimethod = c("Wald","score")) {
 
 

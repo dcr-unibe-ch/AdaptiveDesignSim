@@ -9,7 +9,7 @@ ADevalfun(simdat, zcutoff)
 \arguments{
 \item{simdat}{matrix or data.frame of multiple runs of ADsimfun}
 
-\item{zcutoff}{data frame with the cut-offs on the z-statstics at interim.
+\item{zcutoff}{a matrix (or data frame) with the cut-offs on the z-statstics at interim.
 One row per interim analysis and a column for stop for futilty and efficacy (with NA if not planned)}
 }
 \value{

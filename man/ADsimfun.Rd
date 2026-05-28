@@ -10,8 +10,8 @@ ADsimfun(
   nia,
   pia = NULL,
   alpha = 0.025,
-  effm = c("rd", "rr"),
   direct = c("lower", "higher"),
+  effm = c("rd", "rr"),
   cimethod = c("Wald", "score")
 )
 }
@@ -27,9 +27,9 @@ if Null, equal spacing is assumed}
 
 \item{alpha}{Alpha level for final analysis}
 
-\item{effm}{Effect measure, "rd" (risk differnce) or "rr" (risk ratio)}
-
 \item{direct}{Direction of effect, "lower" (lower is better) or higher ("higher is better")}
+
+\item{effm}{Effect measure, "rd" (risk differnce) or "rr" (risk ratio)}
 
 \item{cimethod}{Confidence interval used for analysis, "Wald" or "score".}
 }
