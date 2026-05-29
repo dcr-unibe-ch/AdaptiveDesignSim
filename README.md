@@ -28,8 +28,8 @@ number of interim analyses (**nia**).
 
 Further optional arguments for `ADsimfun` are
 
-- the time point of the interim analysis (**pia**, as number of
-  participants, equally spaced by default),
+- the time point of the interim analysis (**tia**, as fraction of the
+  total, equally spaced by default),
 - the significance level for the final test (**alpha**, 0.025 by
   default),
 - the effect measure (**effm**, risk difference or ratio),
@@ -58,30 +58,30 @@ simH1<-ADsimfun(n01 = c(100, 100), p01 = c(0.4, p1=0.2), nia = 1,
                 direct = "lower", alpha = 0.025)
 
 cbind(simH0,simH1)
-#>                simH0        simH1
-#> true_p0   0.40000000   0.40000000
-#> true_p1   0.40000000   0.20000000
-#> true_pe   0.00000000  -0.20000000
-#> fa_x0    36.00000000  41.00000000
-#> fa_x1    43.00000000  17.00000000
-#> fa_n0   100.00000000 100.00000000
-#> fa_n1   100.00000000 100.00000000
-#> fa_p0     0.36000000   0.41000000
-#> fa_p1     0.43000000   0.17000000
-#> fa_pe     0.07000000  -0.24000000
-#> fa_lci   -0.06515227  -0.36129628
-#> fa_uci    0.20515227  -0.11870372
-#> fa_z     -1.01513261   3.87803616
-#> ia1_x0   18.00000000  19.00000000
-#> ia1_x1   27.00000000   9.00000000
-#> ia1_n0   50.00000000  50.00000000
-#> ia1_n1   50.00000000  50.00000000
-#> ia1_p0    0.36000000   0.38000000
-#> ia1_p1    0.54000000   0.18000000
-#> ia1_pe    0.18000000  -0.20000000
-#> ia1_lci  -0.01179627  -0.37158363
-#> ia1_uci   0.37179627  -0.02841637
-#> ia1_z    -1.83941802   2.28455831
+#>                simH0         simH1
+#> true_p0   0.40000000   0.400000000
+#> true_p1   0.40000000   0.200000000
+#> true_pe   0.00000000  -0.200000000
+#> fa_x0    36.00000000  41.000000000
+#> fa_x1    43.00000000  18.000000000
+#> fa_n0   100.00000000 100.000000000
+#> fa_n1   100.00000000 100.000000000
+#> fa_p0     0.36000000   0.410000000
+#> fa_p1     0.43000000   0.180000000
+#> fa_pe     0.07000000  -0.230000000
+#> fa_lci   -0.06515227  -0.352321225
+#> fa_uci    0.20515227  -0.107678775
+#> fa_z     -1.01513261   3.685310674
+#> ia1_x0   18.00000000  19.000000000
+#> ia1_x1   27.00000000  10.000000000
+#> ia1_n0   50.00000000  50.000000000
+#> ia1_n1   50.00000000  50.000000000
+#> ia1_p0    0.36000000   0.380000000
+#> ia1_p1    0.54000000   0.200000000
+#> ia1_pe    0.18000000  -0.180000000
+#> ia1_lci  -0.01179627  -0.354337667
+#> ia1_uci   0.37179627  -0.005662333
+#> ia1_z    -1.83941802   2.023621877
 ```
 
 `ADsimfun` returns a numeric vector with
@@ -145,26 +145,29 @@ resH0<-ADevalfun(simdat = simdatH0, zcutoff = zcutoff)
 resH1<-ADevalfun(simdat = simdatH1, zcutoff = zcutoff)
 
 cbind(resH0$opchar,resH1$opchar)
-#>                   [,1]         [,2]
-#> true_p0     0.20000000   0.40000000
-#> true_p1     0.20000000   0.20000000
-#> true_pe     0.00000000  -0.20000000
-#> av_p0       0.18903000   0.40620000
-#> av_p1       0.20960000   0.19119000
-#> av_pe       0.02057000  -0.21501000
-#> av_lci     -0.11190859  -0.36713971
-#> av_uci      0.15304859  -0.06288029
-#> psig        0.03400000   0.88800000
-#> pstop       0.50600000   0.59600000
-#> pstop_fut   0.48800000   0.01200000
-#> pstop_eff   0.01800000   0.58400000
-#> avn       149.40000000 140.40000000
-#> minn      100.00000000 100.00000000
-#> maxn      200.00000000 200.00000000
-#> bias        0.02057000  -0.01501000
-#> sd          0.07067227   0.07910662
-#> mse         0.00541270   0.00647690
-#> coverage    0.92800000   0.93700000
+#>                       [,1]         [,2]
+#> true_p0         0.20000000   0.40000000
+#> true_p1         0.20000000   0.20000000
+#> true_pe         0.00000000  -0.20000000
+#> av_p0           0.19317000   0.40656000
+#> av_p1           0.20625000   0.19501000
+#> av_pe           0.01308000  -0.21155000
+#> av_lci         -0.11811740  -0.36451660
+#> av_uci          0.14427740  -0.05858340
+#> psig            0.04300000   0.88800000
+#> pstop           0.47500000   0.60300000
+#> pstop_fut       0.44800000   0.01400000
+#> pstop_eff       0.02700000   0.58900000
+#> pstop_ia1       0.47500000   0.60300000
+#> pstop_fut_ia1   0.44800000   0.01400000
+#> pstop_eff_ia1   0.02700000   0.58900000
+#> avn           152.50000000 139.70000000
+#> minn          100.00000000 100.00000000
+#> maxn          200.00000000 200.00000000
+#> bias            0.01308000  -0.01155000
+#> sd              0.07287952   0.07665359
+#> mse             0.00547720   0.00600330
+#> coverage        0.91900000   0.93900000
 ```
 
 `ADevalfun` returns a list with the evaluations for each repetition
@@ -191,7 +194,8 @@ simulated trials including the
 - probability for a significant trial (*psig*, the power or type I
   error, depending on the assumptions),
 - probability for any stop (*pstop*) and a stop for futility or efficacy
-  (*pstop_fut*, *pstop_eff*),
+  (*pstop_fut*, *pstop_eff*), overall and at each interim analysis
+  (suffix *iax*),
 - average, minimum and maximum sample size (avn, minn, maxn),
 - bias (average of estimate minus true value),
 - standard deviation (*sd*) of the point estimate,
@@ -199,3 +203,7 @@ simulated trials including the
   estimate and true value), and
 - coverage (proportion of confidence intervals including the true
   value).
+
+## shinyApp
+
+A shinyApp can be launched locally in RStudio via `launch_ADSim_app()`.

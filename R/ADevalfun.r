@@ -26,7 +26,7 @@
 #'  simdat <- do.call(rbind, simdat)
 #'
 #' # Define stop for futility stoppin (z<0) and efficacy stopping (z>2)
-#' zcutoff<-t(data.frame(c(0,2)))
+#' zcutoff<-matrix(c(0,2),1,2)
 #' sr<-ADevalfun(simdat = simdat, zcutoff = zcutoff)
 #' head(sr$rawdata)
 #' sr$opchar
@@ -112,7 +112,8 @@ ADevalfun<-function(simdat, zcutoff) {
 	}
 
 
-	resi$anystop<-factor(resi$anystop,levels=c("Not stopped","Stopped for futility","Stopped for efficacy"))
+	resi$anystop<-factor(resi$anystop,
+		levels=c("Not stopped","Stopped for futility","Stopped for efficacy"))
 
 	av_p0<-mean(resi$obs_p0)
 	av_p1<-mean(resi$obs_p1)
@@ -125,9 +126,22 @@ ADevalfun<-function(simdat, zcutoff) {
 	} else {
 		pwr<-mean(resi$obs_lci>0)
 	}
+	
+	#stop at any ia
 	pstop<-mean(resi$anystop %in% c("Stopped for futility","Stopped for efficacy"))
 	pstopfut<-mean(resi$anystop %in% c("Stopped for futility"))
 	pstopeff<-mean(resi$anystop %in% c("Stopped for efficacy"))
+	
+	#stop at each ia:
+	pstopi<-pstopfuti<-pstopeffi<-numeric(0)
+	for (i in (1:nia)) {
+		pstopfuti<-c(pstopfuti,mean(!is.na(resi$tstop_fut) & resi$tstop_fut==i & resi$anystop_fut))
+		pstopeffi<-c(pstopeffi,mean(!is.na(resi$tstop_eff) & resi$tstop_eff==i & resi$anystop_eff))
+		pstopi<-c(pstopi,mean(!is.na(resi$tstop) & resi$tstop==i & 
+			resi$anystop %in% c("Stopped for futility","Stopped for efficacy")))	
+	}
+	nastopi<-c(paste0("pstop_ia",1:nia),paste0("pstop_fut_ia",1:nia),paste0("pstop_eff_ia",1:nia))
+	
 	avn<-mean(resi$neff)
 	minn<-min(resi$neff)
 	maxn<-max(resi$neff)
@@ -138,10 +152,12 @@ ADevalfun<-function(simdat, zcutoff) {
 
 	op<-c(tp0,tp1,rdt,
 		av_p0,av_p1,av_pe,av_lci,av_uci,
-		pwr,pstop,pstopfut,pstopeff,avn,minn,maxn,bias,sd,mse,coverage)
+		pwr,pstop,pstopfut,pstopeff,pstopi,pstopfuti,pstopeffi,
+			avn,minn,maxn,bias,sd,mse,coverage)
 	names(op)<-c("true_p0","true_p1","true_pe",
 		"av_p0","av_p1","av_pe","av_lci","av_uci",
-		"psig","pstop","pstop_fut","pstop_eff","avn","minn","maxn","bias","sd","mse","coverage")
+		"psig","pstop","pstop_fut","pstop_eff",nastopi,
+		"avn","minn","maxn","bias","sd","mse","coverage")
 
 	res<-list(resi,op)
 	names(res)<-c("rawdata","opchar")

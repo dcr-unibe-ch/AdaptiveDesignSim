@@ -47,7 +47,7 @@ The required options are the sample size in each arm (**n01**),
   
 Further optional arguments for `ADsimfun` are
 
-- the time point of the interim analysis (**pia**, as number of participants, equally spaced by default),
+- the time point of the interim analysis (**tia**, as fraction of the total, equally spaced by default),
 - the significance level for the final test (**alpha**, 0.025 by default),
 - the effect measure (**effm**, risk difference or ratio),
 - the direction of the effect (**direct** with *lower* is better or *higher* is better), and 
@@ -150,10 +150,16 @@ cbind(resH0$opchar,resH1$opchar)
 
 - average estimates in each group, effect (point estimate, *pe*) and (1-alpha) confidence limits (*lci*, *uci*),
 - probability for a significant trial (*psig*, the power or type I error, depending on the assumptions),
-- probability for any stop (*pstop*) and a stop for futility or efficacy (*pstop_fut*, *pstop_eff*),
+- probability for any stop (*pstop*) and a stop for futility or efficacy (*pstop_fut*, *pstop_eff*), overall and at each interim analysis (suffix *iax*),
 - average, minimum and maximum sample size (avn, minn, maxn),
 - bias (average of estimate minus true value),
 - standard deviation (*sd*) of the point estimate,
 - mean squared error (*mse*, average of the squared difference between estimate and true value), and 
 - coverage (proportion of confidence intervals including the true value).
+
+## shinyApp
+
+A shinyApp can be launched locally in RStudio via `launch_ADSim_app()`.
+
+
 

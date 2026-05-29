@@ -8,7 +8,7 @@ ADsimfun(
   n01,
   p01,
   nia,
-  pia = NULL,
+  tia = NULL,
   alpha = 0.025,
   direct = c("lower", "higher"),
   effm = c("rd", "rr"),
@@ -22,8 +22,7 @@ ADsimfun(
 
 \item{nia}{Number of interim analysis, not including the final analysis}
 
-\item{pia}{Optional vector of length nia with the time points (number of patients) of the interim analyses,
-if Null, equal spacing is assumed}
+\item{tia}{Optional vector with the time point(s) of the interim analyses, as fraction of the total (between 0 and 1)}
 
 \item{alpha}{Alpha level for final analysis}
 
@@ -46,10 +45,10 @@ Simulates trials with a binary endpoint and one or several interim analysis,
 set.seed(1)
 ADsimfun(n01 = c(100,100), p01 = c(0.4,0.2), nia = 1, alpha = 0.025)
 set.seed(1)
-ADsimfun(n01 = c(100,100), p01 = c(0.4,0.2), nia = 1, alpha = 0.025, effm="rd", cimethod="score")
+ADsimfun(n01 = c(100,100), p01 = c(0.4,0.2), nia = 1, tia = 0.4, alpha = 0.025)
 set.seed(1)
 ADsimfun(n01 = c(100,100), p01 = c(0.4,0.2), nia = 1, alpha=0.025, effm="rr")
 set.seed(1)
-ADsimfun(n01 = c(100,100), p01 = c(0.4,0.2), nia = 2, pia=c(100), alpha=0.025,
+ADsimfun(n01 = c(100,100), p01 = c(0.4,0.2), nia = 2, alpha=0.025,
   direct="higher", effm="rd")
 }

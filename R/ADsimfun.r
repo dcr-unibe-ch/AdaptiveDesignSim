@@ -7,8 +7,7 @@
 #' @param n01 Total sample size in each arm, numeric vector of length 2
 #' @param p01 Proportion in each arm, numeric vector of length 2
 #' @param nia Number of interim analysis, not including the final analysis
-#' @param pia Optional vector of length nia with the time points (number of patients) of the interim analyses,
-#' 		if Null, equal spacing is assumed
+#' @param tia Optional vector with the time point(s) of the interim analyses, as fraction of the total (between 0 and 1)
 #' @param alpha Alpha level for final analysis
 #' @param direct Direction of effect, "lower" (lower is better) or higher ("higher is better")
 #' @param effm Effect measure, "rd" (risk differnce) or "rr" (risk ratio)
@@ -27,30 +26,58 @@
 #' set.seed(1)
 #' ADsimfun(n01 = c(100,100), p01 = c(0.4,0.2), nia = 1, alpha = 0.025)
 #' set.seed(1)
-#' ADsimfun(n01 = c(100,100), p01 = c(0.4,0.2), nia = 1, alpha = 0.025, effm="rd", cimethod="score")
+#' ADsimfun(n01 = c(100,100), p01 = c(0.4,0.2), nia = 1, tia = 0.4, alpha = 0.025)
 #' set.seed(1)
 #' ADsimfun(n01 = c(100,100), p01 = c(0.4,0.2), nia = 1, alpha=0.025, effm="rr")
 #' set.seed(1)
-#' ADsimfun(n01 = c(100,100), p01 = c(0.4,0.2), nia = 2, pia=c(100), alpha=0.025,
+#' ADsimfun(n01 = c(100,100), p01 = c(0.4,0.2), nia = 2, alpha=0.025,
 #'   direct="higher", effm="rd")
 
 
-ADsimfun<-function(n01, p01, nia, pia = NULL, alpha = 0.025, direct = c("lower","higher"), effm = c("rd","rr"),
+ADsimfun<-function(n01, p01, nia, tia = NULL, alpha = 0.025, direct = c("lower","higher"), effm = c("rd","rr"),
 	cimethod = c("Wald","score")) {
 
 
-	if (!is.null(pia)) {
-		if (length(pia)!="nia") {
-			warning("Length of pia does not correspong to nia. Equal spacing is assumed.")
-			pia<-NULL
-		}
+	if (!is.null(tia)) {
+		if (length(tia)!=nia) {
+			warning("Length of tia does not match nia. Equal spacing is assumed.")
+			tia<-NULL
+		} 
+		else {
+			if (min(tia)<=0 | max(tia)>=1) {
+				warning("tia should be between 0 and 1. Equal spacing is assumed.")
+				tia<-NULL
+			}
+		}	
 	}
 
-	if (is.null(pia)) {
-		sp<-sum(n01)/(nia+1)
-		pia<-round(seq(sp,l=nia,by=sp))
+	if (is.null(tia)) {
+	
+		#with ratio 
+		sp<-1/(nia+1)
+		sp<-seq(sp,1,by=sp)
+		sp<-sp[1:(length(sp)-1)]
+		pia<-sapply(n01,function(x) round(x*sp))
+		
+		#with patients
+		#sp<-n01/(nia+1)
+		#pia<-sapply(1:2,function(x) round(seq(sp[x],l=nia,by=sp[x])))
+		#if (nia==1) {
+		#	pia<-t(matrix(pia))
+		#}
+	} else {
+		pia<-sapply(n01,function(x) round(x*tia))	
 	}
-
+	
+	if (nia==1) {
+		pia<-t(matrix(pia))
+	}
+		
+	if (length(pia)==0) {
+		pia<-NULL
+		stopifnot(nia==0)
+	}
+	
 	cimethod<-match.arg(cimethod)
 	effm<-match.arg(effm)
 	direct<-match.arg(direct)
@@ -95,17 +122,12 @@ ADsimfun<-function(n01, p01, nia, pia = NULL, alpha = 0.025, direct = c("lower",
 	names(rif)<-c("true_p0","true_p1","true_pe",paste0("fa_",nam))
 
 	#interim
-	if (all(!is.na(pia))) {
-		for (ia in 1:length(pia)) {
+	if (nia>0) {
+		for (ia in 1:nia) {
 
-			ni<-pia[ia]
-			ni0<-ni1<-ni %/% 2
-			left <- ni - (ni0+ni1)
-			left <- sample(c(0,left),replace=FALSE)
-			ni0<-ni0 + left[1]
-			ni1<-ni1 + left[2]
-			stopifnot(ni0+ni1==ni)
-
+			ni0<-pia[ia,1]
+			ni1<-pia[ia,2]
+			
 			outi0<-outs0[1:ni0]
 			outi1<-outs1[1:ni1]
 

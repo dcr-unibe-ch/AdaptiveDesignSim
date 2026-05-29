@@ -35,7 +35,7 @@ simdat <- lapply(1:1000, function(i)
  simdat <- do.call(rbind, simdat)
 
 # Define stop for futility stoppin (z<0) and efficacy stopping (z>2)
-zcutoff<-t(data.frame(c(0,2)))
+zcutoff<-matrix(c(0,2),1,2)
 sr<-ADevalfun(simdat = simdat, zcutoff = zcutoff)
 head(sr$rawdata)
 sr$opchar
