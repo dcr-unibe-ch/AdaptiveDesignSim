@@ -1,0 +1,165 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%",
+  size = "footnotesize"
+)
+```
+
+# AdaptiveDesignSim
+
+<!-- badges: start -->
+<!-- [![R-CMD-check](https://github.com/dcr-unibe-ch/AdaptiveDesignSim/workflows/R-CMD-check/badge.svg)](https://github.com/dcr-unibe-ch/AdaptiveDesignSim/actions) -->
+<!-- badges: end -->
+
+An R package for simulations of clinical trials with adaptive designs.
+
+
+## Installation
+
+The package can be installed from [GitHub](https://github.com/) with:
+
+```{r, eval=FALSE}
+# install.packages("devtools")
+devtools::install_github("dcr-unibe-ch/AdaptiveDesignSim")
+```
+
+```{r, echo=FALSE, results="hide", warning=FALSE, message=FALSE}
+devtools::load_all()
+options(width = 200)
+```
+
+## Simulation
+
+A single trial with one or more interim analyses can be simulated using `ADsimfun`.
+The required options are the sample size in each arm (**n01**),
+  the proportion of the outcome in each arm (**p01**), 
+  and the number of interim analyses (**nia**).
+  
+Further optional arguments for `ADsimfun` are
+
+- the time point of the interim analysis (**tia**, as fraction of the total, equally spaced by default),
+- the significance level for the final test (**alpha**, 0.025 by default),
+- the effect measure (**effm**, risk difference or ratio),
+- the direction of the effect (**direct** with *lower* is better or *higher* is better), and 
+- the type of confidence interval used for the analysis (**cimethod**, *Wald* or *score*).
+
+Let's assume
+
+- a trial with a target final sample size of 200 (1:1 allocation),
+- a 'bad' binary outcome, which is expected to occur in 40% of the control patient, and
+- a relevant effect would be a decrease by 20%.
+
+We would like to do one interim analysis at half of patients. 
+Single simulation under the null and alternative can the be done like that:
+
+
+```{r}
+set.seed(12)
+
+simH0<-ADsimfun(n01 = c(100, 100), p01 = c(0.4, p1=0.4), nia = 1, 
+                direct = "lower", alpha = 0.025)
+
+simH1<-ADsimfun(n01 = c(100, 100), p01 = c(0.4, p1=0.2), nia = 1,
+                direct = "lower", alpha = 0.025)
+
+cbind(simH0,simH1)
+```
+
+
+`ADsimfun` returns a numeric vector with
+
+- the true proportions in both arms (*true_p0*, *true_p1*).
+- the true point estimate (*true_pe*), which is either a risk difference or a log risk ratio (depending on option **effm**).
+  
+And for each interim stage (prefix *iax_*) and the final stage (prefix *fa_*) the
+
+- simulated number of successes for both arms (suffix *x0*, *x1*),
+- sample size for both arms (suffix *n0*, *n1*),
+- simulated probabilities for both arms (suffix *p0*, *p1*),
+- simulated point estimate (suffix *pe*, either the risk difference or the log risk ratio),
+- confidence interval (suffix *lci* and *uci*), and 
+- z-statistic (suffix *z*).
+
+
+Simulations can be repeated and stacked to generate a data frame that can then be used with `ADevalfun`.
+
+```{r}
+set.seed(12)
+
+simdatH0 <- lapply(1:1000, function(i) 
+	ADsimfun(n01 = c(100,100), p01 = c(0.2, p1=0.2), nia = 1, 
+	         alpha = 0.025, direct="lower"))
+simdatH0 <- do.call(rbind, simdatH0)
+
+simdatH1 <- lapply(1:1000, function(i) 
+	ADsimfun(n01 = c(100,100), p01 = c(0.4, p1=0.2), nia = 1,
+	         alpha = 0.025, direct="lower"))
+simdatH1 <- do.call(rbind, simdatH1)
+
+```
+
+
+## Evaluation
+
+For the `ADevalfun` thresholds for stopping at each interim analysis have to be defined via **zcutoff**,
+ a matrix with one row per interim analysis and a column for stopping for futility and efficacy.
+	A stop for futility will be assumed
+	if the observed Z-statistic at interim is lower than the threshold in column 1, 
+	a stop for efficacy if the observed Z-statistic at interim is higher than the threshold in column 2.
+	*NA* would mean no stopping at the respective interim analysis.
+	
+Let's assume we have one interim analysis (as specified in the `ADsimfun` above) and would like to stop 
+	for futility if Z<0 and for efficacy if Z>2:
+
+```{r}
+zcutoff<-matrix(c(0,2),1,2)
+zcutoff
+```
+
+```{r}
+resH0<-ADevalfun(simdat = simdatH0, zcutoff = zcutoff)
+
+resH1<-ADevalfun(simdat = simdatH1, zcutoff = zcutoff)
+
+cbind(resH0$opchar,resH1$opchar)
+
+```
+
+`ADevalfun` returns a list with the evaluations for each repetition (*rawdata*) and 
+	the summarized operating characteristics (*opchar*).
+
+*rawdata* is a data frame with the elements from `ADsimfun` plus 
+
+- the observed proportions, effect and confidence interval at study end, which could be at an interim or the final stage  (*obs_p0*, *obs_p1*, *obs_pe*, *obs_lci*, *obs_uci*),
+- the time point of the first stop for either futility or efficacy (*tstop*),	
+	and of the first stop for futility and efficacy (*tstop_fut* and *tstop_eff*),
+- the final sample size (*neff*), and
+- an indicator whether there was any stop (*anystop*) and a stop for futility or efficacy (*anystop_fut* and *anystop_eff*).
+
+*opchar* is a numeric vector with operating characteristics over all simulated trials including the
+
+- average estimates in each group, effect (point estimate, *pe*) and (1-alpha) confidence limits (*lci*, *uci*),
+- probability for a significant trial (*psig*, the power or type I error, depending on the assumptions),
+- probability for any stop (*pstop*) and a stop for futility or efficacy (*pstop_fut*, *pstop_eff*), overall and at each interim analysis (suffix *iax*),
+- average, minimum and maximum sample size (avn, minn, maxn),
+- bias (average of estimate minus true value),
+- standard deviation (*sd*) of the point estimate,
+- mean squared error (*mse*, average of the squared difference between estimate and true value), and 
+- coverage (proportion of confidence intervals including the true value).
+
+## shinyApp
+
+A shinyApp can be launched locally in RStudio via `launch_ADSim_app()`.
+
+
+

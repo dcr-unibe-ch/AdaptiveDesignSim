@@ -1,0 +1,18 @@
+Package: AdaptiveDesignSim
+Title: Simulations of clinical trials with adaptive designs
+Version: 0.0.3
+Authors@R: 
+	person("Lukas", "Bütikofer", role = c("cre", "aut"),
+    email = "lukas.buetikofer@unibe.ch")
+Description: Simulates trials with adaptive designs and calculates opering characteriscs. 
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 8.0.0
+Depends:
+    R (>= 2.10)
+Imports:
+	pairwiseCI,
+	stats,
+	shiny
+	
