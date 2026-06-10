@@ -33,7 +33,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">AdaptiveDesignSim</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.3</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
       </span>
     </div>
 
@@ -71,35 +71,35 @@
 <p>The package can be installed from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("devtools")</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"dcr-unibe-ch/AdaptiveDesignSim"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/install-deprecated.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"dcr-unibe-ch/AdaptiveDesignSim"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="simulation">Simulation<a class="anchor" aria-label="anchor" href="#simulation"></a>
 </h2>
-<p>A single trial with one or more interim analyses can be simulated using <code>ADsimfun</code>. The required options are the sample size in each arm (<strong>n01</strong>), the proportion of the outcome in each arm (<strong>p01</strong>), and the number of interim analyses (<strong>nia</strong>).</p>
-<p>Further optional arguments for <code>ADsimfun</code> are</p>
+<p>A single trial with one or more interim analyses can be simulated using <code>ADsim</code>. The required options are the sample size in each arm (<strong>n01</strong>), the proportion of the outcome in each arm (<strong>p01</strong>), and the number of interim analyses (<strong>nia</strong>).</p>
+<p>Further optional arguments for <code>ADsim</code> are</p>
 <ul>
 <li>the time point of the interim analysis (<strong>tia</strong>, as fraction of the total, equally spaced by default),</li>
-<li>the significance level for the final test (<strong>alpha</strong>, 0.025 by default),</li>
-<li>the effect measure (<strong>effm</strong>, risk difference or ratio),</li>
-<li>the direction of the effect (<strong>direct</strong> with <em>lower</em> is better or <em>higher</em> is better), and</li>
-<li>the type of confidence interval used for the analysis (<strong>cimethod</strong>, <em>Wald</em> or <em>score</em>).</li>
+<li>the estimation function (<strong>estfun</strong>, either a user-specified function or a string with one of the four defaults (wald_rd, wald_rr, score_rd, score_rr),</li>
+<li>the two-sided confidence level for the confidence interval if one of the defaults was used for <em>estfun</em>,</li>
+<li>a function to calculate the true point estimate if a user-specified <em>estfun</em> was used (<strong>truefun</strong>),<br>
+</li>
+<li>the direction of the effect (<strong>direct</strong> with <em>lower</em> is better or <em>higher</em> is better).</li>
 </ul>
 <p>Let’s assume</p>
 <ul>
 <li>a trial with a target final sample size of 200 (1:1 allocation),</li>
-<li>a ‘bad’ binary outcome, which is expected to occur in 40% of the control patient, and</li>
-<li>a relevant effect would be a decrease by 20%.</li>
+<li>a ‘bad’ binary outcome, which is expected to occur in 40% of the control patient,</li>
+<li>a relevant effect would be a decrease by 20%,</li>
+<li>a risk difference as effect measure using Wald-type CI and test with a one-sided alpha of 0.025.</li>
 </ul>
-<p>We would like to do one interim analysis at half of patients. Single simulation under the null and alternative can the be done like that:</p>
+<p>We would like to do one interim analysis at half of patients Single simulation under the null and alternative can the be done like that:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">12</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">simH0</span><span class="op">&lt;-</span><span class="fu"><a href="reference/ADsimfun.html">ADsimfun</a></span><span class="op">(</span>n01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">100</span><span class="op">)</span>, p01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.4</span>, p1<span class="op">=</span><span class="fl">0.4</span><span class="op">)</span>, nia <span class="op">=</span> <span class="fl">1</span>, </span>
-<span>                direct <span class="op">=</span> <span class="st">"lower"</span>, alpha <span class="op">=</span> <span class="fl">0.025</span><span class="op">)</span></span>
+<span><span class="va">simH0</span><span class="op">&lt;-</span><span class="fu"><a href="reference/ADsim.html">ADsim</a></span><span class="op">(</span>n01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">100</span><span class="op">)</span>, p01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.4</span>, p1<span class="op">=</span><span class="fl">0.4</span><span class="op">)</span>, nia <span class="op">=</span> <span class="fl">1</span>, direct <span class="op">=</span> <span class="st">"lower"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">simH1</span><span class="op">&lt;-</span><span class="fu"><a href="reference/ADsimfun.html">ADsimfun</a></span><span class="op">(</span>n01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">100</span><span class="op">)</span>, p01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.4</span>, p1<span class="op">=</span><span class="fl">0.2</span><span class="op">)</span>, nia <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>                direct <span class="op">=</span> <span class="st">"lower"</span>, alpha <span class="op">=</span> <span class="fl">0.025</span><span class="op">)</span></span>
+<span><span class="va">simH1</span><span class="op">&lt;-</span><span class="fu"><a href="reference/ADsim.html">ADsim</a></span><span class="op">(</span>n01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">100</span><span class="op">)</span>, p01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.4</span>, p1<span class="op">=</span><span class="fl">0.2</span><span class="op">)</span>, nia <span class="op">=</span> <span class="fl">1</span>, direct <span class="op">=</span> <span class="st">"lower"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">simH0</span>,<span class="va">simH1</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                simH0         simH1</span></span>
@@ -126,10 +126,10 @@
 <span><span class="co">#&gt; ia1_lci  -0.01179627  -0.354337667</span></span>
 <span><span class="co">#&gt; ia1_uci   0.37179627  -0.005662333</span></span>
 <span><span class="co">#&gt; ia1_z    -1.83941802   2.023621877</span></span></code></pre></div>
-<p><code>ADsimfun</code> returns a numeric vector with</p>
+<p><code>ADsim</code> returns a numeric vector with</p>
 <ul>
 <li>the true proportions in both arms (<em>true_p0</em>, <em>true_p1</em>).</li>
-<li>the true point estimate (<em>true_pe</em>), which is either a risk difference or a log risk ratio (depending on option <strong>effm</strong>).</li>
+<li>the true point estimate (<em>true_pe</em>), which is either a risk difference or a log risk ratio (depending on option <strong>estfun</strong>).</li>
 </ul>
 <p>And for each interim stage (prefix <em>iax_</em>) and the final stage (prefix <em>fa_</em>) the</p>
 <ul>
@@ -137,37 +137,64 @@
 <li>sample size for both arms (suffix <em>n0</em>, <em>n1</em>),</li>
 <li>simulated probabilities for both arms (suffix <em>p0</em>, <em>p1</em>),</li>
 <li>simulated point estimate (suffix <em>pe</em>, either the risk difference or the log risk ratio),</li>
-<li>confidence interval (suffix <em>lci</em> and <em>uci</em>), and</li>
+<li>two-sided <em>cilevel</em>% confidence intervals (suffix <em>lci</em> and <em>uci</em>), and</li>
 <li>z-statistic (suffix <em>z</em>).</li>
 </ul>
-<p>Simulations can be repeated and stacked to generate a data frame that can then be used with <code>ADevalfun</code>.</p>
+<p>Simulations can be repeated and stacked to generate a data frame that can then be used with <code>ADeval</code>.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">12</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">simdatH0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">1000</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span> </span>
-<span>    <span class="fu"><a href="reference/ADsimfun.html">ADsimfun</a></span><span class="op">(</span>n01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>,<span class="fl">100</span><span class="op">)</span>, p01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>, p1<span class="op">=</span><span class="fl">0.2</span><span class="op">)</span>, nia <span class="op">=</span> <span class="fl">1</span>, </span>
-<span>             alpha <span class="op">=</span> <span class="fl">0.025</span>, direct<span class="op">=</span><span class="st">"lower"</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="reference/ADsim.html">ADsim</a></span><span class="op">(</span>n01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>,<span class="fl">100</span><span class="op">)</span>, p01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>, p1<span class="op">=</span><span class="fl">0.2</span><span class="op">)</span>, nia <span class="op">=</span> <span class="fl">1</span>, </span>
+<span>          direct<span class="op">=</span><span class="st">"lower"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">simdatH0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="va">simdatH0</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">simdatH1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">1000</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span> </span>
-<span>    <span class="fu"><a href="reference/ADsimfun.html">ADsimfun</a></span><span class="op">(</span>n01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>,<span class="fl">100</span><span class="op">)</span>, p01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.4</span>, p1<span class="op">=</span><span class="fl">0.2</span><span class="op">)</span>, nia <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>             alpha <span class="op">=</span> <span class="fl">0.025</span>, direct<span class="op">=</span><span class="st">"lower"</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="reference/ADsim.html">ADsim</a></span><span class="op">(</span>n01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>,<span class="fl">100</span><span class="op">)</span>, p01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.4</span>, p1<span class="op">=</span><span class="fl">0.2</span><span class="op">)</span>, nia <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>          direct<span class="op">=</span><span class="st">"lower"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">simdatH1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="va">simdatH1</span><span class="op">)</span></span></code></pre></div>
+<p>Optionally a different effect estimate or estimation function can be specified via <strong>estfun</strong>. There are four defaults, standard Wald-type approximation for the risk difference (<em>wald_rd</em>) and risk ratio (<em>wald_rr</em>), the score-based method for the risk difference suggested by Newcombe (<em>score_rd</em>) and the score-based method for the risk ratio according to Koopman (<em>score_rr</em>).</p>
+<p>Alternatively, any function can be defined with arguments</p>
+<ul>
+<li>
+<em>xs</em>: the number of successes in control and experimental group)</li>
+<li>
+<em>ns</em>: the number of patients in control and experimental group</li>
+<li>
+<em>cilevel</em>: the confidence level</li>
+</ul>
+<p>and a named vector as output with point estimate, lower confidence limit, upper confidence limit and z-statistic.</p>
+<p>In that case, function <strong>truefun</strong> with argument <em>p01</em> has to be used to specify how the true effect should be calculated, e.g. as <em>diff(p01)</em> for the risk difference.</p>
+<p>This example would reproduce the <strong>wald_rd</strong> option:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="va">efun</span><span class="op">&lt;-</span><span class="kw">function</span><span class="op">(</span><span class="va">xs</span>,<span class="va">ns</span>,<span class="va">cilevel</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">pe</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="va">xs</span><span class="op">/</span><span class="va">ns</span><span class="op">)</span></span>
+<span>    <span class="va">se</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">xs</span><span class="op">/</span><span class="va">ns</span><span class="op">*</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">xs</span><span class="op">/</span><span class="va">ns</span><span class="op">)</span><span class="op">/</span><span class="va">ns</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="va">lci</span><span class="op">&lt;-</span><span class="va">pe</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">qnorm</a></span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">cilevel</span><span class="op">)</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span><span class="op">*</span><span class="va">se</span></span>
+<span>    <span class="va">uci</span><span class="op">&lt;-</span><span class="va">pe</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">qnorm</a></span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">cilevel</span><span class="op">)</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span><span class="op">*</span><span class="va">se</span></span>
+<span>    <span class="va">z</span><span class="op">&lt;-</span><span class="op">(</span><span class="op">-</span><span class="va">pe</span><span class="op">)</span><span class="op">/</span><span class="va">se</span></span>
+<span>    <span class="va">res</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">pe</span>,<span class="va">lci</span>,<span class="va">uci</span>,<span class="va">z</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pe"</span>,<span class="st">"lci"</span>,<span class="st">"uci"</span>,<span class="st">"z"</span><span class="op">)</span></span>
+<span>    <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="fu"><a href="reference/ADsim.html">ADsim</a></span><span class="op">(</span>n01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>,<span class="fl">100</span><span class="op">)</span>, p01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.4</span>,<span class="fl">0.2</span><span class="op">)</span>, nia <span class="op">=</span> <span class="fl">1</span>, estfun <span class="op">=</span> <span class="va">efun</span>, truefun <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="evaluation">Evaluation<a class="anchor" aria-label="anchor" href="#evaluation"></a>
 </h2>
-<p>For the <code>ADevalfun</code> thresholds for stopping at each interim analysis have to be defined via <strong>zcutoff</strong>, a matrix with one row per interim analysis and a column for stopping for futility and efficacy. A stop for futility will be assumed if the observed Z-statistic at interim is lower than the threshold in column 1, a stop for efficacy if the observed Z-statistic at interim is higher than the threshold in column 2. <em>NA</em> would mean no stopping at the respective interim analysis.</p>
-<p>Let’s assume we have one interim analysis (as specified in the <code>ADsimfun</code> above) and would like to stop for futility if Z&lt;0 and for efficacy if Z&gt;2:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<p>For the <code>ADeval</code> thresholds for stopping at each interim analysis have to be defined via <strong>zcutoff</strong>, a matrix with one row per interim analysis and a column for stopping for futility and efficacy. A stop for futility will be assumed if the observed Z-statistic at interim is lower than the threshold in column 1, a stop for efficacy if the observed Z-statistic at interim is higher than the threshold in column 2. <em>NA</em> would mean no stopping at the respective interim analysis.</p>
+<p>Let’s assume we have one interim analysis (as specified in the <code>ADsim</code> above) and would like to stop for futility if Z&lt;0 and for efficacy if Z&gt;2:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">zcutoff</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">2</span><span class="op">)</span>,<span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span></span>
 <span><span class="va">zcutoff</span></span>
 <span><span class="co">#&gt;      [,1] [,2]</span></span>
 <span><span class="co">#&gt; [1,]    0    2</span></span></code></pre></div>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">resH0</span><span class="op">&lt;-</span><span class="fu"><a href="reference/ADevalfun.html">ADevalfun</a></span><span class="op">(</span>simdat <span class="op">=</span> <span class="va">simdatH0</span>, zcutoff <span class="op">=</span> <span class="va">zcutoff</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">resH0</span><span class="op">&lt;-</span><span class="fu"><a href="reference/ADeval.html">ADeval</a></span><span class="op">(</span>simdat <span class="op">=</span> <span class="va">simdatH0</span>, zcutoff <span class="op">=</span> <span class="va">zcutoff</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">resH1</span><span class="op">&lt;-</span><span class="fu"><a href="reference/ADevalfun.html">ADevalfun</a></span><span class="op">(</span>simdat <span class="op">=</span> <span class="va">simdatH1</span>, zcutoff <span class="op">=</span> <span class="va">zcutoff</span><span class="op">)</span></span>
+<span><span class="va">resH1</span><span class="op">&lt;-</span><span class="fu"><a href="reference/ADeval.html">ADeval</a></span><span class="op">(</span>simdat <span class="op">=</span> <span class="va">simdatH1</span>, zcutoff <span class="op">=</span> <span class="va">zcutoff</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">resH0</span><span class="op">$</span><span class="va">opchar</span>,<span class="va">resH1</span><span class="op">$</span><span class="va">opchar</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                       [,1]         [,2]</span></span>
@@ -193,8 +220,8 @@
 <span><span class="co">#&gt; sd              0.07287952   0.07665359</span></span>
 <span><span class="co">#&gt; mse             0.00547720   0.00600330</span></span>
 <span><span class="co">#&gt; coverage        0.91900000   0.93900000</span></span></code></pre></div>
-<p><code>ADevalfun</code> returns a list with the evaluations for each repetition (<em>rawdata</em>) and the summarized operating characteristics (<em>opchar</em>).</p>
-<p><em>rawdata</em> is a data frame with the elements from <code>ADsimfun</code> plus</p>
+<p><code>ADeval</code> returns a list with the evaluations for each repetition (<em>rawdata</em>) and the summarized operating characteristics (<em>opchar</em>).</p>
+<p><em>rawdata</em> is a data frame with the elements from <code>ADsim</code> plus</p>
 <ul>
 <li>the observed proportions, effect and confidence interval at study end, which could be at an interim or the final stage (<em>obs_p0</em>, <em>obs_p1</em>, <em>obs_pe</em>, <em>obs_lci</em>, <em>obs_uci</em>),</li>
 <li>the time point of the first stop for either futility or efficacy (<em>tstop</em>),<br>
@@ -204,7 +231,7 @@ and of the first stop for futility and efficacy (<em>tstop_fut</em> and <em>tsto
 </ul>
 <p><em>opchar</em> is a numeric vector with operating characteristics over all simulated trials including the</p>
 <ul>
-<li>average estimates in each group, effect (point estimate, <em>pe</em>) and (1-alpha) confidence limits (<em>lci</em>, <em>uci</em>),</li>
+<li>average estimates in each group, effect (point estimate, <em>pe</em>) and 95% confidence limits (<em>lci</em>, <em>uci</em>),</li>
 <li>probability for a significant trial (<em>psig</em>, the power or type I error, depending on the assumptions),</li>
 <li>probability for any stop (<em>pstop</em>) and a stop for futility or efficacy (<em>pstop_fut</em>, <em>pstop_eff</em>), overall and at each interim analysis (suffix <em>iax</em>),</li>
 <li>average, minimum and maximum sample size (avn, minn, maxn),</li>

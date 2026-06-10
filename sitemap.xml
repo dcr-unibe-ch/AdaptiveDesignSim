@@ -4,8 +4,8 @@
 <url><loc>/authors.html</loc></url>
 <url><loc>/index.html</loc></url>
 <url><loc>/news/index.html</loc></url>
-<url><loc>/reference/ADevalfun.html</loc></url>
-<url><loc>/reference/ADsimfun.html</loc></url>
+<url><loc>/reference/ADeval.html</loc></url>
+<url><loc>/reference/ADsim.html</loc></url>
 <url><loc>/reference/index.html</loc></url>
 <url><loc>/reference/launch_ADSim_app.html</loc></url>
 </urlset>
