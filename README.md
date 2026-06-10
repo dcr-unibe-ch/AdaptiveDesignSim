@@ -23,40 +23,42 @@ devtools::install_github("dcr-unibe-ch/AdaptiveDesignSim")
 ## Simulation
 
 A single trial with one or more interim analyses can be simulated using
-`ADsimfun`. The required options are the sample size in each arm
-(**n01**), the proportion of the outcome in each arm (**p01**), and the
-number of interim analyses (**nia**).
+`ADsim`. The required options are the sample size in each arm (**n01**),
+the proportion of the outcome in each arm (**p01**), and the number of
+interim analyses (**nia**).
 
-Further optional arguments for `ADsimfun` are
+Further optional arguments for `ADsim` are
 
 - the time point of the interim analysis (**tia**, as fraction of the
   total, equally spaced by default),
-- the significance level for the final test (**alpha**, 0.025 by
-  default),
-- the effect measure (**effm**, risk difference or ratio),
+- the estimation function (**estfun**, either a user-specified function
+  or a string with one of the four defaults (wald_rd, wald_rr, score_rd,
+  score_rr),
+- the two-sided confidence level for the confidence interval if one of
+  the defaults was used for *estfun*,
+- a function to calculate the true point estimate if a user-specified
+  *estfun* was used (**truefun**),  
 - the direction of the effect (**direct** with *lower* is better or
-  *higher* is better), and
-- the type of confidence interval used for the analysis (**cimethod**,
-  *Wald* or *score*).
+  *higher* is better).
 
 Let’s assume
 
 - a trial with a target final sample size of 200 (1:1 allocation),
 - a ‘bad’ binary outcome, which is expected to occur in 40% of the
-  control patient, and
-- a relevant effect would be a decrease by 20%.
+  control patient,
+- a relevant effect would be a decrease by 20%,
+- a risk difference as effect measure using Wald-type CI and test with a
+  one-sided alpha of 0.025.
 
-We would like to do one interim analysis at half of patients. Single
+We would like to do one interim analysis at half of patients Single
 simulation under the null and alternative can the be done like that:
 
 ``` r
 set.seed(12)
 
-simH0<-ADsimfun(n01 = c(100, 100), p01 = c(0.4, p1=0.4), nia = 1, 
-                direct = "lower", alpha = 0.025)
+simH0<-ADsim(n01 = c(100, 100), p01 = c(0.4, p1=0.4), nia = 1, direct = "lower")
 
-simH1<-ADsimfun(n01 = c(100, 100), p01 = c(0.4, p1=0.2), nia = 1,
-                direct = "lower", alpha = 0.025)
+simH1<-ADsim(n01 = c(100, 100), p01 = c(0.4, p1=0.2), nia = 1, direct = "lower")
 
 cbind(simH0,simH1)
 #>                simH0         simH1
@@ -85,11 +87,11 @@ cbind(simH0,simH1)
 #> ia1_z    -1.83941802   2.023621877
 ```
 
-`ADsimfun` returns a numeric vector with
+`ADsim` returns a numeric vector with
 
 - the true proportions in both arms (*true_p0*, *true_p1*).
 - the true point estimate (*true_pe*), which is either a risk difference
-  or a log risk ratio (depending on option **effm**).
+  or a log risk ratio (depending on option **estfun**).
 
 And for each interim stage (prefix *iax\_*) and the final stage (prefix
 *fa\_*) the
@@ -99,39 +101,78 @@ And for each interim stage (prefix *iax\_*) and the final stage (prefix
 - simulated probabilities for both arms (suffix *p0*, *p1*),
 - simulated point estimate (suffix *pe*, either the risk difference or
   the log risk ratio),
-- confidence interval (suffix *lci* and *uci*), and
+- two-sided *cilevel*% confidence intervals (suffix *lci* and *uci*),
+  and
 - z-statistic (suffix *z*).
 
 Simulations can be repeated and stacked to generate a data frame that
-can then be used with `ADevalfun`.
+can then be used with `ADeval`.
 
 ``` r
 set.seed(12)
 
 simdatH0 <- lapply(1:1000, function(i) 
-    ADsimfun(n01 = c(100,100), p01 = c(0.2, p1=0.2), nia = 1, 
-             alpha = 0.025, direct="lower"))
+    ADsim(n01 = c(100,100), p01 = c(0.2, p1=0.2), nia = 1, 
+          direct="lower"))
 simdatH0 <- do.call(rbind, simdatH0)
 
 simdatH1 <- lapply(1:1000, function(i) 
-    ADsimfun(n01 = c(100,100), p01 = c(0.4, p1=0.2), nia = 1,
-             alpha = 0.025, direct="lower"))
+    ADsim(n01 = c(100,100), p01 = c(0.4, p1=0.2), nia = 1,
+          direct="lower"))
 simdatH1 <- do.call(rbind, simdatH1)
+```
+
+Optionally a different effect estimate or estimation function can be
+specified via **estfun**. There are four defaults, standard Wald-type
+approximation for the risk difference (*wald_rd*) and risk ratio
+(*wald_rr*), the score-based method for the risk difference suggested by
+Newcombe (*score_rd*) and the score-based method for the risk ratio
+according to Koopman (*score_rr*).
+
+Alternatively, any function can be defined with arguments
+
+- *xs*: the number of successes in control and experimental group)
+- *ns*: the number of patients in control and experimental group
+- *cilevel*: the confidence level
+
+and a named vector as output with point estimate, lower confidence
+limit, upper confidence limit and z-statistic.
+
+In that case, function **truefun** with argument *p01* has to be used to
+specify how the true effect should be calculated, e.g. as *diff(p01)*
+for the risk difference.
+
+This example would reproduce the **wald_rd** option:
+
+``` r
+
+efun<-function(xs,ns,cilevel) {
+    pe<-diff(xs/ns)
+    se<-sqrt(sum(xs/ns*(1-xs/ns)/ns))
+    lci<-pe - qnorm(1-(1-cilevel)/2)*se
+    uci<-pe + qnorm(1-(1-cilevel)/2)*se
+    z<-(-pe)/se
+    res<-c(pe,lci,uci,z)
+    names(res)<-c("pe","lci","uci","z")
+    return(res)
+}
+
+ADsim(n01 = c(100,100), p01 = c(0.4,0.2), nia = 1, estfun = efun, truefun = function(x) diff(x))
 ```
 
 ## Evaluation
 
-For the `ADevalfun` thresholds for stopping at each interim analysis
-have to be defined via **zcutoff**, a matrix with one row per interim
+For the `ADeval` thresholds for stopping at each interim analysis have
+to be defined via **zcutoff**, a matrix with one row per interim
 analysis and a column for stopping for futility and efficacy. A stop for
 futility will be assumed if the observed Z-statistic at interim is lower
 than the threshold in column 1, a stop for efficacy if the observed
 Z-statistic at interim is higher than the threshold in column 2. *NA*
 would mean no stopping at the respective interim analysis.
 
-Let’s assume we have one interim analysis (as specified in the
-`ADsimfun` above) and would like to stop for futility if Z\<0 and for
-efficacy if Z\>2:
+Let’s assume we have one interim analysis (as specified in the `ADsim`
+above) and would like to stop for futility if Z\<0 and for efficacy if
+Z\>2:
 
 ``` r
 zcutoff<-matrix(c(0,2),1,2)
@@ -141,9 +182,9 @@ zcutoff
 ```
 
 ``` r
-resH0<-ADevalfun(simdat = simdatH0, zcutoff = zcutoff)
+resH0<-ADeval(simdat = simdatH0, zcutoff = zcutoff)
 
-resH1<-ADevalfun(simdat = simdatH1, zcutoff = zcutoff)
+resH1<-ADeval(simdat = simdatH1, zcutoff = zcutoff)
 
 cbind(resH0$opchar,resH1$opchar)
 #>                       [,1]         [,2]
@@ -171,10 +212,10 @@ cbind(resH0$opchar,resH1$opchar)
 #> coverage        0.91900000   0.93900000
 ```
 
-`ADevalfun` returns a list with the evaluations for each repetition
+`ADeval` returns a list with the evaluations for each repetition
 (*rawdata*) and the summarized operating characteristics (*opchar*).
 
-*rawdata* is a data frame with the elements from `ADsimfun` plus
+*rawdata* is a data frame with the elements from `ADsim` plus
 
 - the observed proportions, effect and confidence interval at study end,
   which could be at an interim or the final stage (*obs_p0*, *obs_p1*,
@@ -190,8 +231,8 @@ cbind(resH0$opchar,resH1$opchar)
 *opchar* is a numeric vector with operating characteristics over all
 simulated trials including the
 
-- average estimates in each group, effect (point estimate, *pe*) and
-  (1-alpha) confidence limits (*lci*, *uci*),
+- average estimates in each group, effect (point estimate, *pe*) and 95%
+  confidence limits (*lci*, *uci*),
 - probability for a significant trial (*psig*, the power or type I
   error, depending on the assumptions),
 - probability for any stop (*pstop*) and a stop for futility or efficacy

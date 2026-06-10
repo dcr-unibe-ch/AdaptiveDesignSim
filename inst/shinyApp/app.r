@@ -560,11 +560,11 @@ server1 <- function(id, out_shared) {
 			}
 
 			if (is.null(input$effectm) || input$effectm=="Risk difference") {
-				effm<-"rd"
 				rdl<-rdused()/100
+				efun<-"wald_rd"
 			} else {
-				effm<-"rr"
 				rdl<-log(rdused())
+				efun<-"wald_rr"
 			}
 
 			if (input$finalz==1.96) {
@@ -574,6 +574,7 @@ server1 <- function(id, out_shared) {
 			}
 
 			alpha<-1-pnorm(usefinalz)
+			cilevel<-(1-2*alpha)
 
 			res<-vector(length=length(rdl),mode="list")
 			names(res)<-rdl
@@ -596,9 +597,10 @@ server1 <- function(id, out_shared) {
 				}
 
 				ri <- lapply(1:input$reps, function(x)
-					ADsimfun(n01 = c(input$n0,input$n1), p01 = c(input$p0/100, p1),
+					ADsim(n01 = c(input$n0,input$n1), p01 = c(input$p0/100, p1),
 						nia = input$nia, tia = tia,
-						alpha = alpha, effm = effm, direct = direct))
+						estfun = efun, cilevel=cilevel,
+						direct = direct))
 
 				ri <- do.call(rbind, ri)
 
@@ -648,7 +650,7 @@ server1 <- function(id, out_shared) {
 				#	zsc = zsc, zsign = input$zsign, n = input$n,
 				#	direct = direct)
 
-				resf[[ri]]<-ADevalfun(simdat = resi, zcutoff = zcut)
+				resf[[ri]]<-ADeval(simdat = resi, zcutoff = zcut, finalm = "ci")
 
 			}
 			return(resf)
@@ -1198,10 +1200,10 @@ server2 <- function(id, shared_inputs) {
 			}
 
 			if (is.null(input1$effectm) || input1$effectm=="Risk difference") {
-				effm<-"rd"
+				efun<-"wald_rd"
 				rdl<-seq(min(input$rdrange),max(input$rdrange),l=input$step)/100
 			} else {
-				effm<-"rr"
+				efun<-"wald_rr"
 				rdl<-seq(log(min(input$rdrange)),log(max(input$rdrange)),l=input$step)
 			}
 
@@ -1212,6 +1214,7 @@ server2 <- function(id, shared_inputs) {
 			}
 
 			alpha<-1-pnorm(usefinalz)
+			cilevel<-(1-2*alpha)
 
 			res<-vector(length=length(rdl),mode="list")
 			names(res)<-rdl
@@ -1237,9 +1240,10 @@ server2 <- function(id, shared_inputs) {
 				}
 
 				ri <- lapply(1:input$reps, function(x)
-					ADsimfun(n01 = input1$n01, p01 = c(input1$p0/100, p1),
+					ADsim(n01 = input1$n01, p01 = c(input1$p0/100, p1),
 						nia = input1$nia, tia = tia,
-						alpha = alpha, effm = effm, direct = direct))
+						estfun = efun, cilevel = cilevel,
+						direct = direct))
 
 				ri <- do.call(rbind, ri)
 
@@ -1282,7 +1286,7 @@ server2 <- function(id, shared_inputs) {
 
 				resi<-res()[[ri]]
 
-				resii<-ADevalfun(simdat = resi, zcutoff = input1$zcut)
+				resii<-ADeval(simdat = resi, zcutoff = input1$zcut, finalm = "ci")
 
 				outi[[ri]]<-resii[["opchar"]]
 
