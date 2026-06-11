@@ -561,10 +561,10 @@ server1 <- function(id, out_shared) {
 
 			if (is.null(input$effectm) || input$effectm=="Risk difference") {
 				rdl<-rdused()/100
-				efun<-"wald_rd"
+				efun<-"rd_wald"
 			} else {
 				rdl<-log(rdused())
-				efun<-"wald_rr"
+				efun<-"rr_wald"
 			}
 
 			if (input$finalz==1.96) {
@@ -597,7 +597,7 @@ server1 <- function(id, out_shared) {
 				}
 
 				ri <- lapply(1:input$reps, function(x)
-					ADsim(n01 = c(input$n0,input$n1), p01 = c(input$p0/100, p1),
+					ADsim(n01 = c(input$n0,input$n1), par01 = c(input$p0/100, p1),
 						nia = input$nia, tia = tia,
 						estfun = efun, cilevel=cilevel,
 						direct = direct))
@@ -922,7 +922,7 @@ server1 <- function(id, out_shared) {
 
 			}
 
-			avnfor <- paste0(round(resi["avn"])," (",round(resi["minn"]),", ",round(resi["maxn"]),")")
+			avnfor <- paste0(round(resi["av_n"])," (",round(resi["min_n"]),", ",round(resi["max_n"]),")")
 
       d1<-c(paste0(ff(resi["psig"]*100, dig=1),"%"),
             pstopf, pstopfutf, pstopefff,
@@ -1200,10 +1200,10 @@ server2 <- function(id, shared_inputs) {
 			}
 
 			if (is.null(input1$effectm) || input1$effectm=="Risk difference") {
-				efun<-"wald_rd"
+				efun<-"rd_wald"
 				rdl<-seq(min(input$rdrange),max(input$rdrange),l=input$step)/100
 			} else {
-				efun<-"wald_rr"
+				efun<-"rr_wald"
 				rdl<-seq(log(min(input$rdrange)),log(max(input$rdrange)),l=input$step)
 			}
 
@@ -1240,7 +1240,7 @@ server2 <- function(id, shared_inputs) {
 				}
 
 				ri <- lapply(1:input$reps, function(x)
-					ADsim(n01 = input1$n01, p01 = c(input1$p0/100, p1),
+					ADsim(n01 = input1$n01, par01 = c(input1$p0/100, p1),
 						nia = input1$nia, tia = tia,
 						estfun = efun, cilevel = cilevel,
 						direct = direct))
@@ -1360,20 +1360,20 @@ server2 <- function(id, shared_inputs) {
 			plow<--(min(xsc)/(xsc[2]-xsc[1]))
 			pupp<-max(xsc)/(xsc[2]-xsc[1])
 
-			if (plow>0.1) {
-				ppwr<-ppwr +
-					annotate("text", x = 0, y = 100,
-					label = dlab[2],
-					hjust = 1.1, vjust = -0.4,
-					color = colbg[2])
-			}
-			if (pupp>0.1) {
-				ppwr<-ppwr +
-					annotate("text", x = 0, y = 100,
-					label = dlab[1],
-					hjust = -0.1, vjust = -0.4,
-					color = colbg[1])
-			}
+			#if (plow>0.1) {
+			#	ppwr<-ppwr +
+			#		annotate("text", x = 0, y = 100,
+			#		label = dlab[2],
+			#		hjust = 1.1, vjust = -0.4,
+			#		color = colbg[2])
+			#}
+			#if (pupp>0.1) {
+			#	ppwr<-ppwr +
+			#		annotate("text", x = 0, y = 100,
+			#		label = dlab[1],
+			#		hjust = -0.1, vjust = -0.4,
+			#		color = colbg[1])
+			#}
 
 			if (is.null(input1$effectm) || input1$effectm=="Risk difference") {
 				ppwr
@@ -1452,20 +1452,20 @@ server2 <- function(id, shared_inputs) {
 			plow<--(min(xsc)/(xsc[2]-xsc[1]))
 			pupp<-max(xsc)/(xsc[2]-xsc[1])
 
-			if (plow>0.1) {
-				pstop<-pstop +
-					annotate("text", x = 0, y = 100,
-					label = dlab[2],
-					hjust = 1.1, vjust = -0.4,
-					color = colbg[2])
-			}
-			if (pupp>0.1) {
-				pstop<-pstop +
-					annotate("text", x = 0, y = 100,
-					label = dlab[1],
-					hjust = -0.1, vjust = -0.4,
-					color = colbg[1])
-			}
+			#if (plow>0.1) {
+			#	pstop<-pstop +
+			#		annotate("text", x = 0, y = 100,
+			#		label = dlab[2],
+			#		hjust = 1.1, vjust = -0.4,
+			#		color = colbg[2])
+			#}
+			#if (pupp>0.1) {
+			#	pstop<-pstop +
+			#		annotate("text", x = 0, y = 100,
+			#		label = dlab[1],
+			#		hjust = -0.1, vjust = -0.4,
+			#		color = colbg[1])
+			#}
 
 			if (is.null(input1$effectm) || input1$effectm=="Risk difference") {
 				pstop
@@ -1533,20 +1533,20 @@ server2 <- function(id, shared_inputs) {
 			plow<--(min(xsc)/(xsc[2]-xsc[1]))
 			pupp<-max(xsc)/(xsc[2]-xsc[1])
 
-			if (plow>0.1) {
-				pbias<-pbias +
-					annotate("text", x = 0, y = max(resf()[,"bias"]),
-					label = dlab[2],
-					hjust = 1.1, vjust = -0.4,
-					color = colbg[2])
-			}
-			if (pupp>0.1) {
-				pbias<-pbias +
-					annotate("text", x = 0, y = max(resf()[,"bias"]),
-					label = dlab[1],
-					hjust = -0.1, vjust = -0.4,
-					color = colbg[1])
-			}
+			#if (plow>0.1) {
+			#	pbias<-pbias +
+			#		annotate("text", x = 0, y = max(resf()[,"bias"]),
+			#		label = dlab[2],
+			#		hjust = 1.1, vjust = -0.4,
+			#		color = colbg[2])
+			#}
+			#if (pupp>0.1) {
+			#	pbias<-pbias +
+			#		annotate("text", x = 0, y = max(resf()[,"bias"]),
+			#		label = dlab[1],
+			#		hjust = -0.1, vjust = -0.4,
+			#		color = colbg[1])
+			#}
 
 
 			if (is.null(input1$effectm) || input1$effectm=="Risk difference") {
@@ -1596,7 +1596,7 @@ server2 <- function(id, shared_inputs) {
 
 			pss<-resf()  %>%
 				mutate(rdt = true_pe*tfac) %>%
-				ggplot(aes(x=rdt,y=avn, group = 1)) +
+				ggplot(aes(x=rdt,y=av_n, group = 1)) +
 				annotate("rect",
 						xmin = -Inf, xmax = 0,
 						ymin = -Inf, ymax = Inf,
@@ -1606,8 +1606,8 @@ server2 <- function(id, shared_inputs) {
 						ymin = -Inf, ymax = Inf,
 						fill =   colbg[1],alpha = alphabg) +
 				geom_line() +
-				geom_errorbar(aes(ymin = minn, ymax = maxn), width = ebw, alpha=0.2) +
-				scale_y_continuous(limits=c(0,max(resf()$maxn))) +
+				geom_errorbar(aes(ymin = min_n, ymax = max_n), width = ebw, alpha=0.2) +
+				scale_y_continuous(limits=c(0,max(resf()$max_n))) +
 				xlab(xnam) +
 				ylab("Sample size") +
 				theme_bw(base_size = tsize)
@@ -1617,20 +1617,20 @@ server2 <- function(id, shared_inputs) {
 			plow<--(min(xsc)/(xsc[2]-xsc[1]))
 			pupp<-max(xsc)/(xsc[2]-xsc[1])
 
-			if (plow>0.1) {
-				pss<-pss +
-					annotate("text", x = 0, y = 0,
-					label = dlab[2],
-					hjust = 1.1, vjust = 0.4,
-					color = colbg[2])
-			}
-			if (pupp>0.1) {
-				pss<-pss +
-					annotate("text", x = 0, y = 0,
-					label = dlab[1],
-					hjust = -0.1, vjust = 0.4,
-					color = colbg[1])
-			}
+			#if (plow>0.1) {
+			#	pss<-pss +
+			#		annotate("text", x = 0, y = 0,
+			#		label = dlab[2],
+			#		hjust = 1.1, vjust = 0.4,
+			#		color = colbg[2])
+			#}
+			#if (pupp>0.1) {
+			#	pss<-pss +
+			#		annotate("text", x = 0, y = 0,
+			#		label = dlab[1],
+			#		hjust = -0.1, vjust = 0.4,
+			#		color = colbg[1])
+			#}
 
 			if (is.null(input1$effectm) || input1$effectm=="Risk difference") {
 				pss

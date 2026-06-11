@@ -6,70 +6,105 @@
 \usage{
 ADsim(
   n01,
-  p01,
   nia,
   tia = NULL,
-  estfun = "wald_rd",
+  par01,
+  simfun = "binom",
+  estfun = "rd_wald",
   cilevel = 0.95,
   truefun = NULL,
-  direct = c("lower", "higher")
+  direct = c("higher", "lower")
 )
 }
 \arguments{
-\item{n01}{Total sample size in each arm, numeric vector of length 2}
+\item{n01}{Total sample size in control and experimental arm, numeric vector of length 2.}
 
-\item{p01}{Proportion in each arm, numeric vector of length 2}
+\item{nia}{Number of interim analysis, not including the final analysis.}
 
-\item{nia}{Number of interim analysis, not including the final analysis}
+\item{tia}{Optional vector with the time point(s) of the interim analyses, as fraction of the total (between 0 and 1).}
 
-\item{tia}{Optional vector with the time point(s) of the interim analyses, as fraction of the total (between 0 and 1)}
+\item{par01}{Parameters in control and experimental arm (which is used as argument for simfun).}
 
-\item{estfun}{Function to estimate to determine point estimate, CIs and test.
-Should take arguments xs (number of success in both groups), ns (sample size in both groups), and cilevel,
-and return a named vector with pe, lci, uci and z.
-Four defaults functions can be entered as string: wald_rd, wald_rr, score_rd, score_rr.}
+\item{simfun}{Simulation function or one of the default options ("binom", "norm").}
 
-\item{cilevel}{Level of the two-sided confience interval for the default functions.}
+\item{estfun}{Function to calculate point estimate, CIs and z- statistic or one of the
+five defaults functions ("rd_wald", "lrr_wald", "rd_score", "lrr_score", "md_t").}
 
-\item{truefun}{Function to calculate the true point estimate from p01 (ignored if the default estfun are used)}
+\item{cilevel}{Level of the two-sided confience interval for the default estfun.}
 
-\item{direct}{Direction of the effect, "lower" or "higher" values are better.}
+\item{truefun}{Function to calculate the true point estimate from par01 (ignored if the default estfun are used).}
+
+\item{direct}{Direction of the effect, "higher" (default) or "lower" values are better.}
 }
 \value{
-Numeric vector with true proportions in both arms and point estimate (true_p0, true_p1, true_pe),
-and for each interim stage (prefix iax_) and the final stage (prefix fa_),
-the simulated number of successes, sample size and observed probabilities for both arms (suffix x0, x1, n0, n1, p0, p1),
-point estimate (suffic pe), confidence interval (suffic lci and uci) and z-statistic (z).
+Numeric vector with true point estimate (\emph{true_pe}),
+and for each interim stage (prefix \emph{iax_}) and the final stage (prefix \emph{fa_}),
+the sample size (suffix \emph{n0} and \emph{n1}), point estimate (suffix \emph{pe}),
+confidence interval (suffix \emph{lci} and \emph{uci}) and z-statistic (\emph{z})
+And depending on the setting further group-specific paremeters
+(e.g. the simulated number of successes and observed probabilities for both arms).
 }
 \description{
 Simulates trials with a binary endpoint and one or several interim analysis,
 }
+\details{
+Parameters for simulation are defined with \emph{par01}, the simulation function with \emph{simfun}.
+For the default simfun "binom" \emph{par01} must be a numeric vector of length 2 with the probabilities in control
+and experimental group. For the default simfun "norm", \emph{par01} must be a 2x2 data frame
+with rows \emph{mean} and \emph{sd} and first column for control and second for experimental.
+User-specified \emph{simfun},  must take \emph{par01} as argument.
+
+For estimation, five defaults can be specified via \emph{estfun} - standard Wald-type approximation
+for the risk difference (\emph{wald_rd}) and risk ratio (\emph{wald_rr}),
+the score-based method for the risk difference suggested by Newcombe (\emph{score_rd}),
+the score-based method for the risk ratio according to Koopman (\emph{score_rr}),
+and Student's t-test for the mean difference (\emph{md_t}).
+The effect is allways given as experimental (second element of par01) vs control (first element of par01).
+
+User-specified \emph{estfun} must take the output from \emph{simfun} and \emph{cilevel} as argument,
+and produce a named numeric vector with point estimate (\emph{pe}), confidence limits (\emph{lci}, \emph{uci}) and z-statistic (\emph{z}).
+If a user-specifid \emph{estfun} is used, a function to calculate the true effect must be given via \emph{truefun}.
+
+The direction if the effect in \emph{direct} only affects the sign of the z-statistic.
+So that positive values of the z-statistic are always assocaiated with a benefit of the experimental arm.
+}
 \examples{
 set.seed(1)
-ADsim(n01 = c(100,100), p01 = c(0.4,0.2), nia = 1)
+ADsim(n01 = c(100,100), par01 = c(0.2,0.4), nia = 1)
 
 #Earlier interim analysis
 set.seed(1)
-ADsim(n01 = c(100,100), p01 = c(0.4,0.2), nia = 1, tia = 0.4)
+ADsim(n01 = c(100,100), par01 = c(0.2,0.4), nia = 1, tia = 0.4)
 
 #Difference effect estimation
 set.seed(1)
-ADsim(n01 = c(100,100), p01 = c(0.4,0.2), nia = 1, estfun = "wald_rr")
+ADsim(n01 = c(100,100), par01 = c(0.2,0.4), nia = 1, estfun = "lrr_wald")
 
 #Assume higher would be better
 set.seed(1)
-ADsim(n01 = c(100,100), p01 = c(0.4,0.2), nia = 2, direct="higher")
-efun<-function(xs,ns,cilevel) {
-pe<-diff(xs/ns)
-se<-sqrt(sum(xs/ns*(1-xs/ns)/ns))
-lci<-pe - qnorm(1-(1-cilevel)/2)*se
-uci<-pe + qnorm(1-(1-cilevel)/2)*se
-z<-(-pe)/se
-res<-c(pe,lci,uci,z)
-names(res)<-c("pe","lci","uci","z")
-return(res)
-}
-set.seed(1)
-ADsim(n01 = c(100,100), p01 = c(0.4,0.2), nia = 1, estfun = efun, truefun = function(x) diff(x))
+ADsim(n01 = c(100,100), par01 = c(0.2,0.4), nia = 2, direct="lower")
 
+#User defined function that reproduces the default setting
+efun<-function(out,cilevel) {
+	xs<-unlist(lapply(out,sum))
+	ns<-unlist(lapply(out,length))
+	pe<-diff(xs/ns)
+	se<-sqrt(sum(xs/ns*(1-xs/ns)/ns))
+	lci<-pe - qnorm(1-(1-cilevel)/2)*se
+	uci<-pe + qnorm(1-(1-cilevel)/2)*se
+	z<-(-pe)/se
+	res<-c(pe,lci,uci,z)
+	names(res)<-c("pe","lci","uci","z")
+	return(res)
+}
+
+tfun <- function(x) diff(x)
+
+set.seed(1)
+ADsim(n01 = c(100,100), par01 = c(0.4,0.2), nia = 1, estfun = efun, truefun = tfun)
+
+#Continuous outcome 
+par01<-data.frame(matrix(c(5,1,5.5,1),2,2))
+rownames(par01)<-c("mean","sd")
+ADsim(n01 = c(100,100), par01 = par01, nia = 1, estfun = "md_t", simfun="norm")
 }

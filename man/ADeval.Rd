@@ -35,8 +35,8 @@ Function to evaluate operating characteristics of trials simulated via ADsim
 \examples{
 #Simulate 1000 trials with one interim analysis
 simdat <- lapply(1:1000, function(i)
- ADsim(n01 = c(100,100), p01 = c(0.4, 0.2), nia = 1))
- simdat <- do.call(rbind, simdat)
+		ADsim(n01 = c(100,100), par01 = c(0.2, 0.4), nia = 1))
+simdat <- do.call(rbind, simdat)
 
 # Define stop for futility stoppin (z<0) and efficacy stopping (z>2)
 zcutoff<-matrix(c(0,2),1,2)
