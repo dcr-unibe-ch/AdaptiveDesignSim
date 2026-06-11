@@ -41,52 +41,45 @@ options(width = 200)
 ## Simulation
 
 A single trial with one or more interim analyses can be simulated using `ADsim`.
-The required options are the sample size in each arm (**n01**),
-  the proportion of the outcome in each arm (**p01**), 
-  and the number of interim analyses (**nia**).
-  
-Further optional arguments for `ADsim` are
-
-- the time point of the interim analysis (**tia**, as fraction of the total, equally spaced by default),
-- the estimation function (**estfun**, either a user-specified function 
-	or a string with one of the four defaults (wald_rd, wald_rr, score_rd, score_rr),
-- the two-sided confidence level for the confidence interval 
-	if one of the defaults was used for *estfun*,
-- a function to calculate the true point estimate if a user-specified *estfun* was used (**truefun**),	
-- the direction of the effect (**direct** with *lower* is better or *higher* is better).
+The required options are the sample size in each arm (*n01*),
+	the number and potentially time point of interim analyses (*nia*, *tia*).
+	the distribution (*simfun*) and paremeters in each arm (*par01*), 
+	and the estimation function (*estfun*).
 
 Let's assume
 
 - a trial with a target final sample size of 200 (1:1 allocation),
-- a 'bad' binary outcome, which is expected to occur in 40% of the control patient,
-- a relevant effect would be a decrease by 20%,
-- a risk difference as effect measure using Wald-type CI and test with a one-sided alpha of 0.025.
+- a 'good' binary outcome, which is expected to occur in 20% of the control patient,
+- a relevant effect would be an absolute increase by 20%,
+- a risk difference as effect measure using a Wald-type CI and z-test.
 
-We would like to do one interim analysis at half of patients
-Single simulation under the null and alternative can the be done like that:
+We would like to do one interim analysis at half of the patients.
+Single simulations under the null and alternative can the be done like that:
 
 ```{r}
 set.seed(12)
 
-simH0<-ADsim(n01 = c(100, 100), p01 = c(0.4, p1=0.4), nia = 1, direct = "lower")
+simH0<-ADsim(n01 = c(100, 100), nia = 1, 
+	par01 = c(p0=0.2, p1=0.2), simfun = "binom",
+	estfun = "rd_wald", 
+	direct = "higher")
 
-simH1<-ADsim(n01 = c(100, 100), p01 = c(0.4, p1=0.2), nia = 1, direct = "lower")
-
+simH1<-ADsim(n01 = c(100, 100), nia = 1, 
+	par01 = c(p0=0.2, p1=0.4), simfun = "binom",
+	estfun = "rd_wald", 
+	direct = "higher")
+	
 cbind(simH0,simH1)
 ```
 
-
-`ADsim` returns a numeric vector with
-
-- the true proportions in both arms (*true_p0*, *true_p1*).
-- the true point estimate (*true_pe*), which is either a risk difference or a log risk ratio (depending on option **estfun**).
-  
-And for each interim stage (prefix *iax_*) and the final stage (prefix *fa_*) the
+`ADsim` returns a numeric vector with the true point estimate
+(*true_pe*, a risk difference in this example), 
+and---for each interim stage (prefix *iax_*) and the final stage (prefix *fa_*)---the
 
 - simulated number of successes for both arms (suffix *x0*, *x1*),
 - sample size for both arms (suffix *n0*, *n1*),
 - simulated probabilities for both arms (suffix *p0*, *p1*),
-- simulated point estimate (suffix *pe*, either the risk difference or the log risk ratio),
+- simulated point estimate (suffix *pe*, a risk difference in this example),
 - two-sided *cilevel*% confidence intervals (suffix *lci* and *uci*), and 
 - z-statistic (suffix *z*).
 
@@ -96,59 +89,129 @@ Simulations can be repeated and stacked to generate a data frame that can then b
 set.seed(12)
 
 simdatH0 <- lapply(1:1000, function(i) 
-	ADsim(n01 = c(100,100), p01 = c(0.2, p1=0.2), nia = 1, 
-	      direct="lower"))
+	ADsim(n01 = c(100, 100), nia = 1, 
+	par01 = c(p0=0.2, p1=0.2), simfun = "binom",
+	estfun = "rd_wald", 
+	direct = "higher"))
 simdatH0 <- do.call(rbind, simdatH0)
 
 simdatH1 <- lapply(1:1000, function(i) 
-	ADsim(n01 = c(100,100), p01 = c(0.4, p1=0.2), nia = 1,
-	      direct="lower"))
+	ADsim(n01 = c(100, 100), nia = 1, 
+	par01 = c(p0=0.2, p1=0.4), simfun = "binom",
+	estfun = "rd_wald", 
+	direct = "higher"))
 simdatH1 <- do.call(rbind, simdatH1)
 
 ```
 
-Optionally a different effect estimate or estimation function can be specified via **estfun**.
-	There are four defaults, standard Wald-type approximation 
+### User-defined estimation function
+
+Estimation functions can be specified via **estfun**.
+	There are five defaults, standard Wald-type approximation 
 	for the risk difference (*wald_rd*) and risk ratio (*wald_rr*),
-	the score-based method for the risk difference suggested by Newcombe (*score_rd*) and 
-	the score-based method for the risk ratio according to Koopman (*score_rr*).
+	the score-based method for the risk difference suggested by Newcombe (*score_rd*), 
+	the score-based method for the risk ratio according to Koopman (*score_rr*), 
+	and Student's t-test for the mean difference (*md_t*).
 
-Alternatively, any function can be defined with arguments
+Alternatively, any function can be defined, which takes hte output from **simfun** and *cilevel* as arguements.
 
-- *xs*: the number of successes in control and experimental group)
-- *ns*: the number of patients in control and experimental group
-- *cilevel*: the confidence level 
-
-and a named vector as output with point estimate, lower confidence limit,
+The output of the function must be a (named) vector with point estimate, lower confidence limit,
 	upper confidence limit and z-statistic.
+	It can also contain further elements (e.g. estimates for each group), which are added to the output of `ADsim`.
+	
+If a user-specified function is given in **estfun**, option **truefun** has also to be used. 
+	It must be a function with argument *par01* that specifies how the true effect is calculated,
+		e.g. as *diff(par01)* for the risk difference.
 
-In that case, function **truefun** with argument *p01* has to be used to specify 
-how the true effect should be calculated, e.g. as *diff(p01)* for the risk difference.
+This example would reproduce the *wald_rd* option.
 
-This example would reproduce the **wald_rd** option: 
+```{r, eval =FALSE}
 
-```{r, eval=FALSE}
-
-efun<-function(xs,ns,cilevel) {
+efun<-function(out,cilevel) {
+	xs<-unlist(lapply(out,sum))
+	ns<-unlist(lapply(out,length))
 	pe<-diff(xs/ns)
 	se<-sqrt(sum(xs/ns*(1-xs/ns)/ns))
 	lci<-pe - qnorm(1-(1-cilevel)/2)*se
 	uci<-pe + qnorm(1-(1-cilevel)/2)*se
-	z<-(-pe)/se
+	z<-(pe)/se
 	res<-c(pe,lci,uci,z)
 	names(res)<-c("pe","lci","uci","z")
 	return(res)
 }
 
-ADsim(n01 = c(100,100), p01 = c(0.4,0.2), nia = 1, estfun = efun, truefun = function(x) diff(x))
+tfun <- function(x) diff(x)
+
+ADsim(n01 = c(100,100), nia = 1,
+      par01 = c(0.2,0.4), simfun = "binom",
+      estfun = efun, truefun = tfun,
+      direct = "higher")
 
 ```
 	
+### Different outcome types
+
+Continuous outcomes can be specified like that: 
+
+```{r, eval=FALSE}
+
+par01<-data.frame(matrix(c(5,1,5.2,1),2,2))
+rownames(par01)<-c("mean","sd")
+
+ADsim(n01 = c(100,100), nia = 1, 
+      par01 = par01, simfun="norm",
+      estfun = "md_t",
+      direct = "higher")
+
+```
+
+Note that the *par01* needs rows named *mean* and *sd*.
+
+Other outcome types can also be included using specific functions for **simfun**, **estfun** and **truefun**.
+
+**simfun** has to take *par01* as argument, and produce a list of length two with the simulated outcomes for control and experimental group.
+
+For example, a Poisson distribution with expected counts of 4 and 3 in control and experimental group and low counts being better:
+
+```{r, eval=FALSE}
+
+sfun<-function(n01,par01) {
+	out0<-rpois(n = n01[1], lambda = par01[1])
+	out1<-rpois(n = n01[2], lambda = par01[2])
+	return(list(out0,out1))
+}
+
+efun<-function(out,cilevel) {
+	
+	ns<-unlist(lapply(out,length))
+	xs<-unlist(lapply(out,mean))
+	
+	m1<-glm(c(out[[1]],out[[2]]) ~ c(rep(0,ns[1]),rep(1,ns[2])),
+	        poisson(link = "log"))
+	
+	z<-summary(m1)$coef[2,"z value"]
+	
+	res<-c(xs,m1$coef[2],confint.default(m1, level = cilevel)[2,],z)
+
+	names(res)<-c("m0","m1","pe","lci","uci","z")
+	return(res)
+}
+
+tfun<-function(p01) diff(log(par01))
+
+ADsim(n01 = c(100,100), nia = 1,
+	par01 = c(4,3), simfun=sfun,
+	estfun = efun, truefun = tfun,
+	direct="lower")
+
+```
 
 
 ## Evaluation
 
-For the `ADeval` thresholds for stopping at each interim analysis have to be defined via **zcutoff**,
+Repeated simulations can be evaluated using function `ADeval`. 
+
+Thresholds for stopping at each interim analysis have to be defined via **zcutoff**,
  a matrix with one row per interim analysis and a column for stopping for futility and efficacy.
 	A stop for futility will be assumed
 	if the observed Z-statistic at interim is lower than the threshold in column 1, 
@@ -168,6 +231,8 @@ resH0<-ADeval(simdat = simdatH0, zcutoff = zcutoff)
 
 resH1<-ADeval(simdat = simdatH1, zcutoff = zcutoff)
 
+head(resH0$rawdata)
+
 cbind(resH0$opchar,resH1$opchar)
 
 ```
@@ -177,22 +242,24 @@ cbind(resH0$opchar,resH1$opchar)
 
 *rawdata* is a data frame with the elements from `ADsim` plus 
 
-- the observed proportions, effect and confidence interval at study end, which could be at an interim or the final stage  (*obs_p0*, *obs_p1*, *obs_pe*, *obs_lci*, *obs_uci*),
-- the time point of the first stop for either futility or efficacy (*tstop*),	
-	and of the first stop for futility and efficacy (*tstop_fut* and *tstop_eff*),
-- the final sample size (*neff*), and
-- an indicator whether there was any stop (*anystop*) and a stop for futility or efficacy (*anystop_fut* and *anystop_eff*).
+- prefix *obs_*: the observed sample size (*n0*, *n1*), effect (*pe*) and confidence interval (*lci*, *uci*) at study end 
+	(which could be at an interim or the final stage),
+	and potentially further variables included in `ADsim::estfun`.
+- *tstop*: the time point of the first stop for either futility or efficacy,	
+	and of the first stop for futility and efficacy (*tstop_fut* and *tstop_eff*).
+- *anystop*: an indicator whether there was any stop, and a stop for futility or efficacy (*anystop_fut* and *anystop_eff*).
 
 *opchar* is a numeric vector with operating characteristics over all simulated trials including the
 
-- average estimates in each group, effect (point estimate, *pe*) and 95% confidence limits (*lci*, *uci*),
-- probability for a significant trial (*psig*, the power or type I error, depending on the assumptions),
-- probability for any stop (*pstop*) and a stop for futility or efficacy (*pstop_fut*, *pstop_eff*), overall and at each interim analysis (suffix *iax*),
-- average, minimum and maximum sample size (avn, minn, maxn),
-- bias (average of estimate minus true value),
-- standard deviation (*sd*) of the point estimate,
-- mean squared error (*mse*, average of the squared difference between estimate and true value), and 
-- coverage (proportion of confidence intervals including the true value).
+- prefix *av_*: average estimates in each group, effect (point estimate, *pe*) and 95% confidence limits (*lci*, *uci*).
+- *psig*: probability for a significant trial (the power or type I error, depending on the assumptions).
+- *pstop*: probability for any stop and a stop for futility or efficacy (*pstop_fut*, *pstop_eff*), 
+	overall and at each interim analysis (suffix *iax*).
+- average, minimum and maximum total sample size (av_n, min_n, max_n).
+- *bias*: average of estimate minus true value).
+- *sd*: standard deviation of the point estimate.
+- *mse*: mean squared error, average of the squared difference between estimate and true value).
+- *coverage*: proportion of confidence intervals including the true value.
 
 ## shinyApp
 

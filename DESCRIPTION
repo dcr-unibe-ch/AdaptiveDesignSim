@@ -1,6 +1,6 @@
 Package: AdaptiveDesignSim
 Title: Simulations of clinical trials with adaptive designs
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: 
 	person("Lukas", "Bütikofer", role = c("cre", "aut"),
     email = "lukas.buetikofer@unibe.ch")

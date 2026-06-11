@@ -2,60 +2,96 @@
 #'
 #' Simulates trials with a binary endpoint and one or several interim analysis,
 #'
-#' @param n01 Total sample size in each arm, numeric vector of length 2
-#' @param p01 Proportion in each arm, numeric vector of length 2
-#' @param nia Number of interim analysis, not including the final analysis
-#' @param tia Optional vector with the time point(s) of the interim analyses, as fraction of the total (between 0 and 1)
-#' @param estfun Function to estimate to determine point estimate, CIs and test.
-#'	Should take arguments xs (number of success in both groups), ns (sample size in both groups), and cilevel,
-#' 	and return a named vector with pe, lci, uci and z.
-#'	Four defaults functions can be entered as string: wald_rd, wald_rr, score_rd, score_rr.
-#' @param cilevel Level of the two-sided confience interval for the default functions.
-#' @param truefun Function to calculate the true point estimate from p01 (ignored if the default estfun are used)
-#' @param direct Direction of the effect, "lower" or "higher" values are better.
+#' @param n01 Total sample size in control and experimental arm, numeric vector of length 2.
+#' @param nia Number of interim analysis, not including the final analysis.
+#' @param tia Optional vector with the time point(s) of the interim analyses, as fraction of the total (between 0 and 1).
+#' @param par01 Parameters in control and experimental arm (which is used as argument for simfun).
+#' @param simfun Simulation function or one of the default options ("binom", "norm").
+#' @param estfun Function to calculate point estimate, CIs and z- statistic or one of the
+#'	five defaults functions ("rd_wald", "lrr_wald", "rd_score", "lrr_score", "md_t").
+#' @param cilevel Level of the two-sided confience interval for the default estfun.
+#' @param truefun Function to calculate the true point estimate from par01 (ignored if the default estfun are used).
+#' @param direct Direction of the effect, "higher" (default) or "lower" values are better.
 #'
-#' @returns Numeric vector with true proportions in both arms and point estimate (true_p0, true_p1, true_pe),
-#'  and for each interim stage (prefix iax_) and the final stage (prefix fa_),
-#'  the simulated number of successes, sample size and observed probabilities for both arms (suffix x0, x1, n0, n1, p0, p1),
-#'  point estimate (suffic pe), confidence interval (suffic lci and uci) and z-statistic (z).
+#' @details Parameters for simulation are defined with *par01*, the simulation function with *simfun*.
+#'	For the default simfun "binom" *par01* must be a numeric vector of length 2 with the probabilities in control 
+#'	and experimental group. For the default simfun "norm", *par01* must be a 2x2 data frame 
+#'	with rows *mean* and *sd* and first column for control and second for experimental.
+#' User-specified *simfun*,  must take *par01* as argument.
+#'	
+#' For estimation, five defaults can be specified via *estfun* - standard Wald-type approximation 
+#'	for the risk difference (*wald_rd*) and risk ratio (*wald_rr*),
+#'	the score-based method for the risk difference suggested by Newcombe (*score_rd*), 
+#'	the score-based method for the risk ratio according to Koopman (*score_rr*), 
+#'	and Student's t-test for the mean difference (*md_t*).
+#' 	The effect is allways given as experimental (second element of par01) vs control (first element of par01). 
+#'
+#' User-specified *estfun* must take the output from *simfun* and *cilevel* as argument,
+#'	and produce a named numeric vector with point estimate (*pe*), confidence limits (*lci*, *uci*) and z-statistic (*z*).
+#'	If a user-specifid *estfun* is used, a function to calculate the true effect must be given via *truefun*.
+#'
+#' The direction if the effect in *direct* only affects the sign of the z-statistic.
+#'	So that positive values of the z-statistic are always assocaiated with a benefit of the experimental arm.
+#'
+#' @returns Numeric vector with true point estimate (*true_pe*),
+#'  and for each interim stage (prefix *iax_*) and the final stage (prefix *fa_*),
+#'	the sample size (suffix *n0* and *n1*), point estimate (suffix *pe*), 
+#'	confidence interval (suffix *lci* and *uci*) and z-statistic (*z*)
+#'  And depending on the setting further group-specific paremeters
+#' (e.g. the simulated number of successes and observed probabilities for both arms).
 #'
 #' @export
 #'
-#' @importFrom stats rbinom qnorm uniroot
+#' @importFrom stats rbinom qnorm uniroot rnorm sd t.test
 #'
 #' @examples
 #' set.seed(1)
-#' ADsim(n01 = c(100,100), p01 = c(0.4,0.2), nia = 1)
+#' ADsim(n01 = c(100,100), par01 = c(0.2,0.4), nia = 1)
 #'
 #' #Earlier interim analysis
 #' set.seed(1)
-#' ADsim(n01 = c(100,100), p01 = c(0.4,0.2), nia = 1, tia = 0.4)
+#' ADsim(n01 = c(100,100), par01 = c(0.2,0.4), nia = 1, tia = 0.4)
 #'
 #' #Difference effect estimation
 #' set.seed(1)
-#' ADsim(n01 = c(100,100), p01 = c(0.4,0.2), nia = 1, estfun = "wald_rr")
+#' ADsim(n01 = c(100,100), par01 = c(0.2,0.4), nia = 1, estfun = "lrr_wald")
 #'
 #' #Assume higher would be better
 #' set.seed(1)
-#' ADsim(n01 = c(100,100), p01 = c(0.4,0.2), nia = 2, direct="higher")
-#
-# User defined function that reproduces the default setting
-#'efun<-function(xs,ns,cilevel) {
-#'	pe<-diff(xs/ns)
-#'	se<-sqrt(sum(xs/ns*(1-xs/ns)/ns))
-#'	lci<-pe - qnorm(1-(1-cilevel)/2)*se
-#'	uci<-pe + qnorm(1-(1-cilevel)/2)*se
-#'	z<-(-pe)/se
-#'	res<-c(pe,lci,uci,z)
-#'	names(res)<-c("pe","lci","uci","z")
-#'	return(res)
-#'}
-#'set.seed(1)
-#'ADsim(n01 = c(100,100), p01 = c(0.4,0.2), nia = 1, estfun = efun, truefun = function(x) diff(x))
+#' ADsim(n01 = c(100,100), par01 = c(0.2,0.4), nia = 2, direct="lower")
 #'
-ADsim<-function(n01, p01, nia, tia = NULL,
-	estfun = "wald_rd", cilevel = 0.95, truefun = NULL,
-	direct = c("lower","higher")) {
+#' #User defined function that reproduces the default setting
+#' efun<-function(out,cilevel) {
+#' 	xs<-unlist(lapply(out,sum))
+#' 	ns<-unlist(lapply(out,length))
+#' 	pe<-diff(xs/ns)
+#' 	se<-sqrt(sum(xs/ns*(1-xs/ns)/ns))
+#' 	lci<-pe - qnorm(1-(1-cilevel)/2)*se
+#' 	uci<-pe + qnorm(1-(1-cilevel)/2)*se
+#' 	z<-(-pe)/se
+#' 	res<-c(pe,lci,uci,z)
+#' 	names(res)<-c("pe","lci","uci","z")
+#' 	return(res)
+#' }
+#' 
+#' tfun <- function(x) diff(x)
+#' 
+#' set.seed(1)
+#' ADsim(n01 = c(100,100), par01 = c(0.4,0.2), nia = 1, estfun = efun, truefun = tfun)
+#'
+#' #Continuous outcome 
+#' par01<-data.frame(matrix(c(5,1,5.5,1),2,2))
+#' rownames(par01)<-c("mean","sd")
+#' ADsim(n01 = c(100,100), par01 = par01, nia = 1, estfun = "md_t", simfun="norm")
+ADsim<-function(n01,
+	nia,
+	tia = NULL,
+	par01,
+	simfun = "binom",
+	estfun = "rd_wald",
+	cilevel = 0.95,
+	truefun = NULL,
+	direct = c("higher","lower")) {
 
 	direct<-match.arg(direct)
 
@@ -101,30 +137,74 @@ ADsim<-function(n01, p01, nia, tia = NULL,
 		stopifnot(nia==0)
 	}
 
-
-
 	#function for true point estimate and estimation
 	if (is.character(estfun)) {
-		if (!(estfun %in% c("wald_rd","wald_rr","score_rd","score_rr"))) {
-			stop("estfun has to be a function or wald_rd, wald_rr, score_rd, score_rr")
+		if (!(estfun %in% c("rd_wald","lrr_wald","rd_score","lrr_score","md_t"))) {
+			stop("estfun has to be a function or 'rd_wald', 'lrr_wald', 'rd_score', 'lrr_score', or 'md_t'")
 		}
-		if (is.character(estfun) && estfun=="wald_rd") {
-			estfun<-function(xs, ns, cilevel) waldest(xs, ns, cilevel, effm="rd")
-			truefun<-function(x) return(diff(p01))
+		if (estfun %in% c("rd_wald","lrr_wald","rd_score","lrr_score")) {
+			if (!is.vector(par01) | length(par01)!=2) {
+				stop(paste0("par01 should be a vector of length 2 for estfun ",estfun))
+			}
+			if (is.character(simfun) && simfun=="norm") {
+				warning(paste0("simfun ",simfun," does not work with estfun ",estfun," - binom is used"))
+				simfun<-"binom"
+			}
 		}
-		if (is.character(estfun) && estfun=="wald_rr") {
-			estfun<-function(xs, ns, cilevel) waldest(xs, ns, cilevel, effm="rr")
-			truefun<-function(x) return(diff(log(p01)))
+		if (estfun %in% c("md_t")) {
+			if (!is.data.frame(par01) | any(dim(par01)!=c(2,2)) | any(rownames(par01)!=c("mean","sd"))) {
+				stop(paste0("par01 should be a 2x2 data frame with row.names 'mean' and 'sd' for estfun ",estfun))
+			}
+			if (is.character(simfun) && simfun=="binom") {
+				warning(paste0("simfun ",simfun," does not work with estfun ",estfun, " - norm is used"))
+				simfun<-"norm"
+			}
 		}
-		if (is.character(estfun) && estfun=="score_rd") {
-			estfun<-function(xs, ns, cilevel) scoreest(xs, ns, cilevel,effm="rd")
-			truefun<-function(x) return(diff(p01))
+		
+		if (is.character(estfun) && estfun=="rd_wald") {	
+			estfun<-function(out, cilevel) waldest(out, cilevel, effm="rd")
+			truefun<-function(x) return(diff(par01))
 		}
-		if (is.character(estfun) && estfun=="score_rr") {
-			estfun<-function(xs, ns, cilevel) scoreest(xs, ns, cilevel,effm="rr")
-			truefun<-function(x) return(diff(log(p01)))
+		if (is.character(estfun) && estfun=="lrr_wald") {
+			estfun<-function(out, cilevel) waldest(out, cilevel, effm="rr")
+			truefun<-function(x) return(diff(log(par01)))
+		}
+		if (is.character(estfun) && estfun=="rd_score") {
+			estfun<-function(out, cilevel) scoreest(out, cilevel,effm="rd")
+			truefun<-function(x) return(diff(par01))
+		}
+		if (is.character(estfun) && estfun=="lrr_score") {
+			estfun<-function(out, cilevel) scoreest(out, cilevel,effm="rr")
+			truefun<-function(x) return(diff(log(par01)))
+		}
+		if (is.character(estfun) && estfun=="md_t") {
+			estfun<-function(out, cilevel) test(out, cilevel, effm="md")
+			truefun<-function(x) return(diff(unlist(par01["mean",])))
 		}
 	}
+	
+	#function to simulate data:
+	if (is.character(simfun)) {
+		if (!(simfun %in% c("binom","norm"))) {
+			stop("simfun has to be a function or binom, norm")
+		}
+		if (is.character(simfun) && simfun=="binom") {
+			simfun<-function(n01,par01) {
+				out0<-rbinom(n=n01[1], size=1, prob=par01[1])
+				out1<-rbinom(n=n01[2], size=1, prob=par01[2])
+				return(list(out0,out1))
+			}
+		}
+		if (is.character(simfun) && simfun=="norm") {
+			simfun<-function(n01,par01) {
+				out0<-rnorm(n=n01[1], mean=par01["mean",1], sd=par01["sd",1])
+				out1<-rnorm(n=n01[2], mean=par01["mean",2], sd=par01["sd",2])
+				return(list(out0,out1))
+			}
+		}
+	}
+	
+
 
 	if (!is.function(estfun)) {
 		stop("estfun is not a function")
@@ -133,27 +213,27 @@ ADsim<-function(n01, p01, nia, tia = NULL,
 	if (!is.function(truefun)) {
 		stop("truefun is not a function")
 	}
+	
+	if (!is.function(simfun)) {
+		stop("simfun is not a function")
+	}
+	
+	
+	#target
+	true_pe<-truefun(par01)
+		
+	#simulate
+	out<-simfun(n01, par01)
+	
+	#estimate
+	est<-estfun(out=out, cilevel=cilevel)
 
-	outs0<-rbinom(n=n01[1], size=1, prob=p01[1])
-	outs1<-rbinom(n=n01[2], size=1, prob=p01[2])
-
-	nam<-c("x0","x1","n0","n1","p0","p1")
-
-	#final
-	xs<-c(sum(outs0),sum(outs1))
-	ns<-c(length(outs0),length(outs1))
-	ps<-xs/ns
-
-	true_pe<-truefun(p01)
-
-	est<-estfun(xs=xs, ns=ns, cilevel=cilevel)
-
-	if (direct=="higher") {
+	if (direct=="lower") {
 		est["z"]<-(-1)*est["z"]
 	}
-
-	rif<-c(p01[1],p01[2],true_pe,xs,ns,ps,est)
-	names(rif)<-c("true_p0","true_p1","true_pe",paste0("fa_",c(nam,names(est))))
+	
+	rif<-c(true_pe,n01,est)
+	names(rif)<-c("true_pe","fa_n0","fa_n1",paste0("fa_",c(names(est))))
 
 	#interim
 	if (nia>0) {
@@ -162,22 +242,19 @@ ADsim<-function(n01, p01, nia, tia = NULL,
 			ni0<-pia[ia,1]
 			ni1<-pia[ia,2]
 
-			outi0<-outs0[1:ni0]
-			outi1<-outs1[1:ni1]
+			outi0<-out[[1]][1:ni0]
+			outi1<-out[[2]][1:ni1]
+			outi<-list(outi0,outi1)
 
-			xs<-c(sum(outi0),sum(outi1))
-			ns<-c(length(outi0),length(outi1))
-			ps<-xs/ns
+			est<-estfun(out=outi, cilevel=cilevel)
 
-			est<-estfun(xs=xs, ns=ns, cilevel=cilevel)
-
-			if (direct=="higher") {
+			if (direct=="lower") {
 				est["z"]<-(-1)*est["z"]
 			}
 
-			rii<-c(xs,ns,ps,est)
+			rii<-c(ni0,ni1,est)
 
-			names(rii)<-paste0("ia",ia,"_",c(nam,names(est)))
+			names(rii)<-paste0("ia",ia,"_",c("n0","n1",names(est)))
 
 			rif<-c(rif,rii)
 		}
@@ -189,14 +266,16 @@ ADsim<-function(n01, p01, nia, tia = NULL,
 #Calculates Wald CI and Z
 #---------------------
 
-waldest<-function(xs, ns, cilevel,  effm = c("rd","rr"), direct = c("lower","higher")) {
-
+waldest<-function(out, cilevel = 0.95,  effm = c("rd","rr")) {
+	
+	xs<-unlist(lapply(out,sum))
+	ns<-unlist(lapply(out,length))
+	phat<-xs/ns
+	
 	effm<-match.arg(effm)
 
 	#one-sided ci level:
-	clev<-1-(1-cilevel)/2
-
-	phat<-xs/ns
+	clev<-1-(1-cilevel)/2	
 
 	if (effm=="rd") {
 
@@ -212,8 +291,8 @@ waldest<-function(xs, ns, cilevel,  effm = c("rd","rr"), direct = c("lower","hig
 		lci<-rd - qnorm(clev)*se
 		uci<-rd + qnorm(clev)*se
 
-		z<-(-rd)/se
-		est<-c(rd,lci,uci,z)
+		z<-rd/se
+		est<-c(xs,phat,rd,lci,uci,z)
 
 	} else {
 
@@ -224,12 +303,12 @@ waldest<-function(xs, ns, cilevel,  effm = c("rd","rr"), direct = c("lower","hig
 		lci <- lrr - qnorm(clev)*se
 		uci <- lrr + qnorm(clev)*se
 
-		z<-(-lrr)/se
+		z<-lrr/se
 
-		est<-c(lrr,lci,uci,z)
+		est<-c(xs,phat,lrr,lci,uci,z)
 	}
 
-	names(est)<-c("pe","lci","uci","z")
+	names(est)<-c("x0","x1","p0","p1","pe","lci","uci","z")
 	return(est)
 }
 
@@ -237,27 +316,31 @@ waldest<-function(xs, ns, cilevel,  effm = c("rd","rr"), direct = c("lower","hig
 #Calculates score-based CI and Z
 #---------------------
 
-scoreest<-function(xs, ns, cilevel,  effm = c("rd","rr")) {
-
+scoreest<-function(out, cilevel,  effm = c("rd","rr")) {
+	
+	xs<-unlist(lapply(out,sum))
+	ns<-unlist(lapply(out,length))
+	phat<-xs/ns
+	
 	effm<-match.arg(effm)
 
 	if (effm=="rd") {
-		z<-calc_newcombe_z(x1 = xs[1], n1 = ns[1], x2 = xs[2], n2 = ns[2], delta0 = 0)
+		z<-calc_newcombe_z(x1 = xs[2], n1 = ns[2], x2 = xs[1], n2 = ns[1], delta0 = 0)
 
 		pd<-pairwiseCI::Prop.diff(c(x=xs[2],ns[2]-xs[2]), y=c(xs[1],ns[1]-xs[1]),
 			CImethod="NHS",conf.level = cilevel)
 
-		est<-c(pd$estimate,pd$conf.int,z)
+		est<-c(xs,phat,pd$estimate,pd$conf.int,z)
 	} else {
 
-		z<-calc_koopman_score_z(x1 = xs[1], n1 = ns[1], x2 = xs[2], n2 = ns[2], phi0 = 1)
+		z<-calc_koopman_score_z(x1 = xs[2], n1 = ns[2], x2 = xs[1], n2 = ns[1], phi0 = 1)
 
 		pd<-pairwiseCI::Prop.ratio(c(x=xs[2],ns[2]-xs[2]), y=c(xs[1],ns[1]-xs[1]),
 			CImethod="Score",conf.level = cilevel)
-		est<-c(log(pd$estimate),log(pd$conf.int),z)
+		est<-c(xs,phat,log(pd$estimate),log(pd$conf.int),z)
 	}
-
-	names(est)<-c("pe","lci","uci","z")
+	
+	names(est)<-c("x0","x1","p0","p1","pe","lci","uci","z")
 	return(est)
 }
 
@@ -316,22 +399,44 @@ calc_koopman_score_z <- function(x1, n1, x2, n2, phi0 = 1) {
 }
 
 
-#sig<-scoreest(xs=c(20,10), ns=c(946,1000), cilevel=0.95,  effm = "rd")
-#nsig<-scoreest(xs=c(20,10), ns=c(947,1000), cilevel=0.95,  effm = "rd")
-#sig["uci"]<0 & (1-pnorm(sig["z"]))<0.025
-#nsig["uci"]>0 & (1-pnorm(nsig["z"]))>0.025
+#Calculates t CI and z
+#---------------------
 
-#sig<-scoreest(xs=c(20,10), ns=c(957,1000), cilevel=0.95,  effm = "rr")
-#nsig<-scoreest(xs=c(20,10), ns=c(958,1000), cilevel=0.95,  effm = "rr")
-#sig["uci"]<0 & (1-pnorm(sig["z"]))<0.025
-#nsig["uci"]>0 & (1-pnorm(nsig["z"]))>0.025
+test<-function(out, cilevel = 0.95, effm = "md") {
+	
+	effm<-match.arg(effm)
+	
+	ms<-unlist(lapply(out,mean))
+	sds<-unlist(lapply(out,sd))
+	ns<-unlist(lapply(out,length))
 
-# scoreest(xs=c(13,13), ns=c(50,50), cilevel=0.95)
-# calc_newcombe_z(13, 50, 13, 50)
-# x1<-13
-# n1<-50
-# x2<-13
-# n2<-50
-# delta0=0
+	if (effm=="md") {
+		
+		tt<-t.test(x=out[[2]],y=out[[1]], conf.level = cilevel)
+		
+		md<-ms[2]- ms[1]
+
+		lci<-tt$conf.int[1]
+		uci<-tt$conf.int[2]
+
+		#z<-md/se
+		z<-tt$statistic
+		
+		est<-c(ms,sds,md,lci,uci,z)
+
+	} else {
+
+	}
+
+	names(est)<-c("mean0","mean1","sd0","sd1","pe","lci","uci","z")
+	return(est)
+}
 
 
+#set.seed(1)
+#par01<-data.frame(matrix(c(5,1,4.89,1),2,2))
+#rownames(par01)<-c("mean","sd")
+#out<-simfun(n01, par01)
+#lapply(out,mean)
+#lapply(out,sd)
+#test(out)
