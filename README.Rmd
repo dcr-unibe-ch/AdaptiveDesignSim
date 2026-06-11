@@ -41,20 +41,20 @@ options(width = 200)
 ## Simulation
 
 A single trial with one or more interim analyses can be simulated using `ADsim`.
-The required options are the sample size in each arm (**n01**),
-	the number of interim analyses (**nia**) and potentially time point (**tia**).
-	the distribution (**simfun**) and paremeters in each arm (**par01**), 
-	the estimation function (**estfun**), 
+The required options are the sample size in each arm (*n01*),
+	the number and potentially time point of interim analyses (*nia*, *tia*).
+	the distribution (*simfun*) and paremeters in each arm (*par01*), 
+	and the estimation function (*estfun*).
 
 Let's assume
 
 - a trial with a target final sample size of 200 (1:1 allocation),
 - a 'good' binary outcome, which is expected to occur in 20% of the control patient,
 - a relevant effect would be an absolute increase by 20%,
-- a risk difference as effect measure using Wald-type CI and test.
+- a risk difference as effect measure using a Wald-type CI and z-test.
 
-We would like to do one interim analysis at half of patients
-Single simulation under the null and alternative can the be done like that:
+We would like to do one interim analysis at half of the patients.
+Single simulations under the null and alternative can the be done like that:
 
 ```{r}
 set.seed(12)
@@ -72,14 +72,14 @@ simH1<-ADsim(n01 = c(100, 100), nia = 1,
 cbind(simH0,simH1)
 ```
 
-`ADsim` returns a numeric vector with the true point estimate (*true_pe*, which is a risk difference, 
-a log risk ratio or a mean difference for the default options), 
+`ADsim` returns a numeric vector with the true point estimate
+(*true_pe*, a risk difference in this example), 
 and---for each interim stage (prefix *iax_*) and the final stage (prefix *fa_*)---the
 
 - simulated number of successes for both arms (suffix *x0*, *x1*),
 - sample size for both arms (suffix *n0*, *n1*),
 - simulated probabilities for both arms (suffix *p0*, *p1*),
-- simulated point estimate (suffix *pe*, either the risk difference or the log risk ratio),
+- simulated point estimate (suffix *pe*, a risk difference in this example),
 - two-sided *cilevel*% confidence intervals (suffix *lci* and *uci*), and 
 - z-statistic (suffix *z*).
 
@@ -142,7 +142,10 @@ efun<-function(out,cilevel) {
 
 tfun <- function(x) diff(x)
 
-ADsim(n01 = c(100,100), par01 = c(0.2,0.4), nia = 1, estfun = efun, truefun = tfun)
+ADsim(n01 = c(100,100), nia = 1,
+      par01 = c(0.2,0.4), simfun = "binom",
+      estfun = efun, truefun = tfun,
+      direct = "higher")
 
 ```
 	
@@ -152,9 +155,13 @@ Continuous outcomes can be specified like that:
 
 ```{r, eval=FALSE}
 
-par01<-data.frame(matrix(c(5,1,4.8,1),2,2))
+par01<-data.frame(matrix(c(5,1,5.2,1),2,2))
 rownames(par01)<-c("mean","sd")
-ADsim(n01 = c(100,100), par01 = par01, nia = 1, simfun="norm", estfun = "md_t")
+
+ADsim(n01 = c(100,100), nia = 1, 
+      par01 = par01, simfun="norm",
+      estfun = "md_t",
+      direct = "higher")
 
 ```
 
@@ -162,9 +169,9 @@ Note that the *par01* needs rows named *mean* and *sd*.
 
 Other outcome types can also be included using specific functions for **simfun**, **estfun** and **truefun**.
 
-**simfun** has to take par01 as argument, and produce a list of length two with the outcomes for control and experimental group.
+**simfun** has to take *par01* as argument, and produce a list of length two with the simulated outcomes for control and experimental group.
 
-For example, a Poisson with expected counts of 4 and 3 in control and experimental group and low counts beeing better:
+For example, a Poisson distribution with expected counts of 4 and 3 in control and experimental group and low counts being better:
 
 ```{r, eval=FALSE}
 
@@ -179,7 +186,8 @@ efun<-function(out,cilevel) {
 	ns<-unlist(lapply(out,length))
 	xs<-unlist(lapply(out,mean))
 	
-	m1<-glm(c(out[[1]],out[[2]]) ~ c(rep(0,ns[1]),rep(1,ns[2])),poisson(link = "log"))
+	m1<-glm(c(out[[1]],out[[2]]) ~ c(rep(0,ns[1]),rep(1,ns[2])),
+	        poisson(link = "log"))
 	
 	z<-summary(m1)$coef[2,"z value"]
 	
