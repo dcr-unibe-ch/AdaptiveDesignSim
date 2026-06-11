@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">AdaptiveDesignSim</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.2.0</span>
       </span>
     </div>
 
@@ -87,59 +87,59 @@ One row per interim analysis and a column for stop for futilty and efficacy (wit
     <h2>Examples</h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co">#Simulate 1000 trials with one interim analysis</span></span></span>
 <span class="r-in"><span><span class="va">simdat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">1000</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span></span></span>
-<span class="r-in"><span> <span class="fu"><a href="ADsim.html">ADsim</a></span><span class="op">(</span>n01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>,<span class="fl">100</span><span class="op">)</span>, p01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.4</span>, <span class="fl">0.2</span><span class="op">)</span>, nia <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span> <span class="va">simdat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="va">simdat</span><span class="op">)</span></span></span>
+<span class="r-in"><span>    <span class="fu"><a href="ADsim.html">ADsim</a></span><span class="op">(</span>n01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>,<span class="fl">100</span><span class="op">)</span>, par01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="fl">0.4</span><span class="op">)</span>, nia <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">simdat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="va">simdat</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Define stop for futility stoppin (z&lt;0) and efficacy stopping (z&gt;2)</span></span></span>
 <span class="r-in"><span><span class="va">zcutoff</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">2</span><span class="op">)</span>,<span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sr</span><span class="op">&lt;-</span><span class="fu">ADeval</span><span class="op">(</span>simdat <span class="op">=</span> <span class="va">simdat</span>, zcutoff <span class="op">=</span> <span class="va">zcutoff</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sr</span><span class="op">$</span><span class="va">rawdata</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   true_p0 true_p1 true_pe fa_x0 fa_x1 fa_n0 fa_n1 fa_p0 fa_p1 fa_pe     fa_lci</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1     0.4     0.2    -0.2    34    30   100   100  0.34  0.30 -0.04 -0.1691793</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2     0.4     0.2    -0.2    46    28   100   100  0.46  0.28 -0.18 -0.3114784</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3     0.4     0.2    -0.2    36    20   100   100  0.36  0.20 -0.16 -0.2824625</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4     0.4     0.2    -0.2    50    22   100   100  0.50  0.22 -0.28 -0.4072619</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5     0.4     0.2    -0.2    38    18   100   100  0.38  0.18 -0.20 -0.3213279</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6     0.4     0.2    -0.2    42    19   100   100  0.42  0.19 -0.23 -0.3535710</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        fa_uci      fa_z ia1_x0 ia1_x1 ia1_n0 ia1_n1 ia1_p0 ia1_p1 ia1_pe</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1  0.08917932 0.6068971     22     16     50     50   0.44   0.32  -0.12</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 -0.04852162 2.6832816     25      9     50     50   0.50   0.18  -0.32</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 -0.03753754 2.5607376     16      8     50     50   0.32   0.16  -0.16</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 -0.15273810 4.3122877     26     12     50     50   0.52   0.24  -0.28</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 -0.07867206 3.2308533     18     11     50     50   0.36   0.22  -0.14</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 -0.10642897 3.6480373     21     11     50     50   0.42   0.22  -0.20</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      ia1_lci      ia1_uci    ia1_z obs_p0 obs_p1 obs_pe    obs_lci     obs_uci</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 -0.3088087  0.068808734 1.245682   0.34   0.30  -0.04 -0.1691793  0.08917932</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 -0.4947778 -0.145222197 3.588490   0.50   0.18  -0.32 -0.4947778 -0.14522220</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 -0.3244502  0.004450206 1.906925   0.36   0.20  -0.16 -0.2824625 -0.03753754</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 -0.4621818 -0.097818211 3.012320   0.52   0.24  -0.28 -0.4621818 -0.09781821</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 -0.3157422  0.035742223 1.561349   0.38   0.18  -0.20 -0.3213279 -0.07867206</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 -0.3786042 -0.021395761 2.194756   0.42   0.22  -0.20 -0.3786042 -0.02139576</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       obs_z tstop neff tstop_fut tstop_eff anystop_fut anystop_eff</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 0.6068971    NA  200        NA        NA       FALSE       FALSE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 3.5884904     1  100        NA         1       FALSE        TRUE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 2.5607376    NA  200        NA        NA       FALSE       FALSE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 3.0123204     1  100        NA         1       FALSE        TRUE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 3.2308533    NA  200        NA        NA       FALSE       FALSE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 2.1947564     1  100        NA         1       FALSE        TRUE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                anystop</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1          Not stopped</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 Stopped for efficacy</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3          Not stopped</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 Stopped for efficacy</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5          Not stopped</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 Stopped for efficacy</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   true_pe fa_n0 fa_n1 fa_x0 fa_x1 fa_p0 fa_p1 fa_pe     fa_lci    fa_uci</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1     0.2   100   100    14    50  0.14  0.50  0.36 0.24071562 0.4792844</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2     0.2   100   100    23    48  0.23  0.48  0.25 0.12197069 0.3780293</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3     0.2   100   100    18    39  0.18  0.39  0.21 0.08830849 0.3316915</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4     0.2   100   100    22    40  0.22  0.40  0.18 0.05425643 0.3057436</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5     0.2   100   100    15    41  0.15  0.41  0.26 0.14087675 0.3791233</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6     0.2   100   100    19    40  0.19  0.40  0.21 0.08698981 0.3330102</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       fa_z ia1_n0 ia1_n1 ia1_x0 ia1_x1 ia1_p0 ia1_p1 ia1_pe      ia1_lci</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 5.915167     50     50      7     25   0.14   0.50   0.36  0.191306411</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 3.827178     50     50     12     22   0.24   0.44   0.20  0.018494213</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 3.382261     50     50      8     14   0.16   0.28   0.12 -0.040669236</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 2.805659     50     50     10     19   0.20   0.38   0.18  0.005662333</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 4.277844     50     50      9     20   0.18   0.40   0.22  0.047434103</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6 3.346003     50     50     10     20   0.20   0.40   0.20  0.024695492</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     ia1_uci    ia1_z obs_n0 obs_n1 obs_x0 obs_x1 obs_p0 obs_p1 obs_pe</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 0.5286936 4.182655     50     50      7     25   0.14   0.50   0.36</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 0.3815058 2.159671     50     50     12     22   0.24   0.44   0.20</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 0.2806692 1.463850    100    100     18     39   0.18   0.39   0.21</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 0.3543377 2.023622     50     50     10     19   0.20   0.38   0.18</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 0.3925659 2.498710     50     50      9     20   0.18   0.40   0.22</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6 0.3753045 2.236068     50     50     10     20   0.20   0.40   0.20</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       obs_lci   obs_uci    obs_z tstop tstop_fut tstop_eff anystop_fut</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 0.191306411 0.5286936 4.182655     1        NA         1       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 0.018494213 0.3815058 2.159671     1        NA         1       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 0.088308489 0.3316915 3.382261    NA        NA        NA       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 0.005662333 0.3543377 2.023622     1        NA         1       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 0.047434103 0.3925659 2.498710     1        NA         1       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6 0.024695492 0.3753045 2.236068     1        NA         1       FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   anystop_eff              anystop</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1        TRUE Stopped for efficacy</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2        TRUE Stopped for efficacy</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3       FALSE          Not stopped</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4        TRUE Stopped for efficacy</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5        TRUE Stopped for efficacy</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6        TRUE Stopped for efficacy</span>
 <span class="r-in"><span><span class="va">sr</span><span class="op">$</span><span class="va">opchar</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       true_p0       true_p1       true_pe         av_p0         av_p1 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    0.40000000    0.20000000   -0.20000000    0.41039000    0.19178000 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         av_pe        av_lci        av_uci          psig         pstop </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   -0.21861000   -0.37219985   -0.06502015    0.89800000    0.62100000 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     pstop_fut     pstop_eff     pstop_ia1 pstop_fut_ia1 pstop_eff_ia1 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    0.01200000    0.60900000    0.62100000    0.01200000    0.60900000 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           avn          minn          maxn          bias            sd </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  137.90000000  100.00000000  200.00000000   -0.01861000    0.07875259 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           mse      coverage </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    0.00654210    0.93600000 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       true_pe         av_n0         av_n1         av_x0         av_x1 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    0.20000000   70.15000000   70.15000000   14.18700000   28.06100000 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         av_p0         av_p1         av_pe        av_lci        av_uci </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    0.19513000    0.40854000    0.21341000    0.06066683    0.36615317 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          av_z          psig         pstop     pstop_fut     pstop_eff </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    2.72242458    0.89300000    0.59700000    0.01500000    0.58200000 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     pstop_ia1 pstop_fut_ia1 pstop_eff_ia1          av_n         min_n </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    0.59700000    0.01500000    0.58200000  140.30000000  100.00000000 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         max_n          bias            sd           mse      coverage </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  200.00000000    0.01341000    0.07830711    0.00630570    0.93400000 </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

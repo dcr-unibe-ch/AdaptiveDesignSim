@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">AdaptiveDesignSim</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.2.0</span>
       </span>
     </div>
 
@@ -49,13 +49,14 @@
     <div id="ref-usage">
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">ADsim</span><span class="op">(</span></span>
 <span>  <span class="va">n01</span>,</span>
-<span>  <span class="va">p01</span>,</span>
 <span>  <span class="va">nia</span>,</span>
 <span>  tia <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  estfun <span class="op">=</span> <span class="st">"wald_rd"</span>,</span>
+<span>  <span class="va">par01</span>,</span>
+<span>  simfun <span class="op">=</span> <span class="st">"binom"</span>,</span>
+<span>  estfun <span class="op">=</span> <span class="st">"rd_wald"</span>,</span>
 <span>  cilevel <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  truefun <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  direct <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lower"</span>, <span class="st">"higher"</span><span class="op">)</span></span>
+<span>  direct <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"higher"</span>, <span class="st">"lower"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -64,121 +65,161 @@
 
 
 <dl><dt id="arg-n-">n01<a class="anchor" aria-label="anchor" href="#arg-n-"></a></dt>
-<dd><p>Total sample size in each arm, numeric vector of length 2</p></dd>
-
-
-<dt id="arg-p-">p01<a class="anchor" aria-label="anchor" href="#arg-p-"></a></dt>
-<dd><p>Proportion in each arm, numeric vector of length 2</p></dd>
+<dd><p>Total sample size in control and experimental arm, numeric vector of length 2.</p></dd>
 
 
 <dt id="arg-nia">nia<a class="anchor" aria-label="anchor" href="#arg-nia"></a></dt>
-<dd><p>Number of interim analysis, not including the final analysis</p></dd>
+<dd><p>Number of interim analysis, not including the final analysis.</p></dd>
 
 
 <dt id="arg-tia">tia<a class="anchor" aria-label="anchor" href="#arg-tia"></a></dt>
-<dd><p>Optional vector with the time point(s) of the interim analyses, as fraction of the total (between 0 and 1)</p></dd>
+<dd><p>Optional vector with the time point(s) of the interim analyses, as fraction of the total (between 0 and 1).</p></dd>
+
+
+<dt id="arg-par-">par01<a class="anchor" aria-label="anchor" href="#arg-par-"></a></dt>
+<dd><p>Parameters in control and experimental arm (which is used as argument for simfun).</p></dd>
+
+
+<dt id="arg-simfun">simfun<a class="anchor" aria-label="anchor" href="#arg-simfun"></a></dt>
+<dd><p>Simulation function or one of the default options ("binom", "norm").</p></dd>
 
 
 <dt id="arg-estfun">estfun<a class="anchor" aria-label="anchor" href="#arg-estfun"></a></dt>
-<dd><p>Function to estimate to determine point estimate, CIs and test.
-Should take arguments xs (number of success in both groups), ns (sample size in both groups), and cilevel,
-and return a named vector with pe, lci, uci and z.
-Four defaults functions can be entered as string: wald_rd, wald_rr, score_rd, score_rr.</p></dd>
+<dd><p>Function to calculate point estimate, CIs and z- statistic or one of the
+five defaults functions ("rd_wald", "lrr_wald", "rd_score", "lrr_score", "md_t").</p></dd>
 
 
 <dt id="arg-cilevel">cilevel<a class="anchor" aria-label="anchor" href="#arg-cilevel"></a></dt>
-<dd><p>Level of the two-sided confience interval for the default functions.</p></dd>
+<dd><p>Level of the two-sided confience interval for the default estfun.</p></dd>
 
 
 <dt id="arg-truefun">truefun<a class="anchor" aria-label="anchor" href="#arg-truefun"></a></dt>
-<dd><p>Function to calculate the true point estimate from p01 (ignored if the default estfun are used)</p></dd>
+<dd><p>Function to calculate the true point estimate from par01 (ignored if the default estfun are used).</p></dd>
 
 
 <dt id="arg-direct">direct<a class="anchor" aria-label="anchor" href="#arg-direct"></a></dt>
-<dd><p>Direction of the effect, "lower" or "higher" values are better.</p></dd>
+<dd><p>Direction of the effect, "higher" (default) or "lower" values are better.</p></dd>
 
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>Numeric vector with true proportions in both arms and point estimate (true_p0, true_p1, true_pe),
-and for each interim stage (prefix iax_) and the final stage (prefix fa_),
-the simulated number of successes, sample size and observed probabilities for both arms (suffix x0, x1, n0, n1, p0, p1),
-point estimate (suffic pe), confidence interval (suffic lci and uci) and z-statistic (z).</p>
+    <p>Numeric vector with true point estimate (<em>true_pe</em>),
+and for each interim stage (prefix <em>iax_</em>) and the final stage (prefix <em>fa_</em>),
+the sample size (suffix <em>n0</em> and <em>n1</em>), point estimate (suffix <em>pe</em>),
+confidence interval (suffix <em>lci</em> and <em>uci</em>) and z-statistic (<em>z</em>)
+And depending on the setting further group-specific paremeters
+(e.g. the simulated number of successes and observed probabilities for both arms).</p>
+    </div>
+    <div id="details">
+    <h2>Details</h2>
+    <p>Parameters for simulation are defined with <em>par01</em>, the simulation function with <em>simfun</em>.
+For the default simfun "binom" <em>par01</em> must be a numeric vector of length 2 with the probabilities in control
+and experimental group. For the default simfun "norm", <em>par01</em> must be a 2x2 data frame
+with rows <em>mean</em> and <em>sd</em> and first column for control and second for experimental.
+User-specified <em>simfun</em>,  must take <em>par01</em> as argument.</p>
+<p>For estimation, five defaults can be specified via <em>estfun</em> - standard Wald-type approximation
+for the risk difference (<em>wald_rd</em>) and risk ratio (<em>wald_rr</em>),
+the score-based method for the risk difference suggested by Newcombe (<em>score_rd</em>),
+the score-based method for the risk ratio according to Koopman (<em>score_rr</em>),
+and Student's t-test for the mean difference (<em>md_t</em>).
+The effect is allways given as experimental (second element of par01) vs control (first element of par01).</p>
+<p>User-specified <em>estfun</em> must take the output from <em>simfun</em> and <em>cilevel</em> as argument,
+and produce a named numeric vector with point estimate (<em>pe</em>), confidence limits (<em>lci</em>, <em>uci</em>) and z-statistic (<em>z</em>).
+If a user-specifid <em>estfun</em> is used, a function to calculate the true effect must be given via <em>truefun</em>.</p>
+<p>The direction if the effect in <em>direct</em> only affects the sign of the z-statistic.
+So that positive values of the z-statistic are always assocaiated with a benefit of the experimental arm.</p>
     </div>
 
     <div id="ref-examples">
     <h2>Examples</h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">ADsim</span><span class="op">(</span>n01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>,<span class="fl">100</span><span class="op">)</span>, p01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.4</span>,<span class="fl">0.2</span><span class="op">)</span>, nia <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     true_p0     true_p1     true_pe       fa_x0       fa_x1       fa_n0 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   0.4000000   0.2000000  -0.2000000  43.0000000  18.0000000 100.0000000 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       fa_n1       fa_p0       fa_p1       fa_pe      fa_lci      fa_uci </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 100.0000000   0.4300000   0.1800000  -0.2500000  -0.3728227  -0.1271773 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        fa_z      ia1_x0      ia1_x1      ia1_n0      ia1_n1      ia1_p0 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   3.9894181  23.0000000   7.0000000  50.0000000  50.0000000   0.4600000 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      ia1_p1      ia1_pe     ia1_lci     ia1_uci       ia1_z </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   0.1400000  -0.3200000  -0.4883288  -0.1516712   3.7259715 </span>
+<span class="r-in"><span><span class="fu">ADsim</span><span class="op">(</span>n01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>,<span class="fl">100</span><span class="op">)</span>, par01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>,<span class="fl">0.4</span><span class="op">)</span>, nia <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      true_pe        fa_n0        fa_n1        fa_x0        fa_x1        fa_p0 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.20000000 100.00000000 100.00000000  17.00000000  40.00000000   0.17000000 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        fa_p1        fa_pe       fa_lci       fa_uci         fa_z       ia1_n0 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.40000000   0.23000000   0.10900496   0.35099504   3.72570412  50.00000000 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       ia1_n1       ia1_x0       ia1_x1       ia1_p0       ia1_p1       ia1_pe </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  50.00000000   8.00000000  18.00000000   0.16000000   0.36000000   0.20000000 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      ia1_lci      ia1_uci        ia1_z </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.03258649   0.36741351   2.34146453 </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">#Earlier interim analysis</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">ADsim</span><span class="op">(</span>n01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>,<span class="fl">100</span><span class="op">)</span>, p01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.4</span>,<span class="fl">0.2</span><span class="op">)</span>, nia <span class="op">=</span> <span class="fl">1</span>, tia <span class="op">=</span> <span class="fl">0.4</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      true_p0      true_p1      true_pe        fa_x0        fa_x1        fa_n0 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   0.40000000   0.20000000  -0.20000000  43.00000000  18.00000000 100.00000000 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        fa_n1        fa_p0        fa_p1        fa_pe       fa_lci       fa_uci </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 100.00000000   0.43000000   0.18000000  -0.25000000  -0.37282267  -0.12717733 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         fa_z       ia1_x0       ia1_x1       ia1_n0       ia1_n1       ia1_p0 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   3.98941814  17.00000000   6.00000000  40.00000000  40.00000000   0.42500000 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       ia1_p1       ia1_pe      ia1_lci      ia1_uci        ia1_z </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   0.15000000  -0.27500000  -0.46398032  -0.08601968   2.85209638 </span>
+<span class="r-in"><span><span class="fu">ADsim</span><span class="op">(</span>n01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>,<span class="fl">100</span><span class="op">)</span>, par01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>,<span class="fl">0.4</span><span class="op">)</span>, nia <span class="op">=</span> <span class="fl">1</span>, tia <span class="op">=</span> <span class="fl">0.4</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      true_pe        fa_n0        fa_n1        fa_x0        fa_x1        fa_p0 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.20000000 100.00000000 100.00000000  17.00000000  40.00000000   0.17000000 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        fa_p1        fa_pe       fa_lci       fa_uci         fa_z       ia1_n0 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.40000000   0.23000000   0.10900496   0.35099504   3.72570412  40.00000000 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       ia1_n1       ia1_x0       ia1_x1       ia1_p0       ia1_p1       ia1_pe </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  40.00000000   7.00000000  13.00000000   0.17500000   0.32500000   0.15000000 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      ia1_lci      ia1_uci        ia1_z </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.03690443   0.33690443   1.57296752 </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">#Difference effect estimation</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">ADsim</span><span class="op">(</span>n01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>,<span class="fl">100</span><span class="op">)</span>, p01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.4</span>,<span class="fl">0.2</span><span class="op">)</span>, nia <span class="op">=</span> <span class="fl">1</span>, estfun <span class="op">=</span> <span class="st">"wald_rr"</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     true_p0     true_p1     true_pe       fa_x0       fa_x1       fa_n0 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   0.4000000   0.2000000  -0.6931472  43.0000000  18.0000000 100.0000000 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       fa_n1       fa_p0       fa_p1       fa_pe      fa_lci      fa_uci </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 100.0000000   0.4300000   0.1800000  -0.8708284  -1.3461403  -0.3955164 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        fa_z      ia1_x0      ia1_x1      ia1_n0      ia1_n1      ia1_p0 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   3.5908885  23.0000000   7.0000000  50.0000000  50.0000000   0.4600000 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      ia1_p1      ia1_pe     ia1_lci     ia1_uci       ia1_z </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   0.1400000  -1.1895841  -1.9393450  -0.4398232   3.1097139 </span>
+<span class="r-in"><span><span class="fu">ADsim</span><span class="op">(</span>n01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>,<span class="fl">100</span><span class="op">)</span>, par01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>,<span class="fl">0.4</span><span class="op">)</span>, nia <span class="op">=</span> <span class="fl">1</span>, estfun <span class="op">=</span> <span class="st">"lrr_wald"</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      true_pe        fa_n0        fa_n1        fa_x0        fa_x1        fa_p0 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.69314718 100.00000000 100.00000000  17.00000000  40.00000000   0.17000000 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        fa_p1        fa_pe       fa_lci       fa_uci         fa_z       ia1_n0 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.40000000   0.85566611   0.36051415   1.35081807   3.38699007  50.00000000 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       ia1_n1       ia1_x0       ia1_x1       ia1_p0       ia1_p1       ia1_pe </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  50.00000000   8.00000000  18.00000000   0.16000000   0.36000000   0.81093022 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      ia1_lci      ia1_uci        ia1_z </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.07612522   1.54573521   2.16301472 </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">#Assume higher would be better</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">ADsim</span><span class="op">(</span>n01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>,<span class="fl">100</span><span class="op">)</span>, p01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.4</span>,<span class="fl">0.2</span><span class="op">)</span>, nia <span class="op">=</span> <span class="fl">2</span>, direct<span class="op">=</span><span class="st">"higher"</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      true_p0      true_p1      true_pe        fa_x0        fa_x1        fa_n0 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   0.40000000   0.20000000  -0.20000000  43.00000000  18.00000000 100.00000000 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        fa_n1        fa_p0        fa_p1        fa_pe       fa_lci       fa_uci </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 100.00000000   0.43000000   0.18000000  -0.25000000  -0.37282267  -0.12717733 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         fa_z       ia1_x0       ia1_x1       ia1_n0       ia1_n1       ia1_p0 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  -3.98941814  13.00000000   4.00000000  33.00000000  33.00000000   0.39393939 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       ia1_p1       ia1_pe      ia1_lci      ia1_uci        ia1_z       ia2_x0 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   0.12121212  -0.27272727  -0.47320730  -0.07224725  -2.66627878  27.00000000 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       ia2_x1       ia2_n0       ia2_n1       ia2_p0       ia2_p1       ia2_pe </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   9.00000000  67.00000000  67.00000000   0.40298507   0.13432836  -0.26865672 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      ia2_lci      ia2_uci        ia2_z </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.41169989  -0.12561354  -3.68110877 </span>
-<span class="r-in"><span><span class="va">efun</span><span class="op">&lt;-</span><span class="kw">function</span><span class="op">(</span><span class="va">xs</span>,<span class="va">ns</span>,<span class="va">cilevel</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span><span class="va">pe</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="va">xs</span><span class="op">/</span><span class="va">ns</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">se</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">xs</span><span class="op">/</span><span class="va">ns</span><span class="op">*</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">xs</span><span class="op">/</span><span class="va">ns</span><span class="op">)</span><span class="op">/</span><span class="va">ns</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">lci</span><span class="op">&lt;-</span><span class="va">pe</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">qnorm</a></span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">cilevel</span><span class="op">)</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span><span class="op">*</span><span class="va">se</span></span></span>
-<span class="r-in"><span><span class="va">uci</span><span class="op">&lt;-</span><span class="va">pe</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">qnorm</a></span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">cilevel</span><span class="op">)</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span><span class="op">*</span><span class="va">se</span></span></span>
-<span class="r-in"><span><span class="va">z</span><span class="op">&lt;-</span><span class="op">(</span><span class="op">-</span><span class="va">pe</span><span class="op">)</span><span class="op">/</span><span class="va">se</span></span></span>
-<span class="r-in"><span><span class="va">res</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">pe</span>,<span class="va">lci</span>,<span class="va">uci</span>,<span class="va">z</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pe"</span>,<span class="st">"lci"</span>,<span class="st">"uci"</span>,<span class="st">"z"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">ADsim</span><span class="op">(</span>n01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>,<span class="fl">100</span><span class="op">)</span>, p01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.4</span>,<span class="fl">0.2</span><span class="op">)</span>, nia <span class="op">=</span> <span class="fl">1</span>, estfun <span class="op">=</span> <span class="va">efun</span>, truefun <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     true_p0     true_p1     true_pe       fa_x0       fa_x1       fa_n0 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   0.4000000   0.2000000  -0.2000000  43.0000000  18.0000000 100.0000000 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       fa_n1       fa_p0       fa_p1       fa_pe      fa_lci      fa_uci </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 100.0000000   0.4300000   0.1800000  -0.2500000  -0.3728227  -0.1271773 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        fa_z      ia1_x0      ia1_x1      ia1_n0      ia1_n1      ia1_p0 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   3.9894181  23.0000000   7.0000000  50.0000000  50.0000000   0.4600000 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      ia1_p1      ia1_pe     ia1_lci     ia1_uci       ia1_z </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   0.1400000  -0.3200000  -0.4883288  -0.1516712   3.7259715 </span>
+<span class="r-in"><span><span class="fu">ADsim</span><span class="op">(</span>n01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>,<span class="fl">100</span><span class="op">)</span>, par01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>,<span class="fl">0.4</span><span class="op">)</span>, nia <span class="op">=</span> <span class="fl">2</span>, direct<span class="op">=</span><span class="st">"lower"</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      true_pe        fa_n0        fa_n1        fa_x0        fa_x1        fa_p0 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.20000000 100.00000000 100.00000000  17.00000000  40.00000000   0.17000000 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        fa_p1        fa_pe       fa_lci       fa_uci         fa_z       ia1_n0 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.40000000   0.23000000   0.10900496   0.35099504  -3.72570412  33.00000000 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       ia1_n1       ia1_x0       ia1_x1       ia1_p0       ia1_p1       ia1_pe </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  33.00000000   6.00000000  10.00000000   0.18181818   0.30303030   0.12121212 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      ia1_lci      ia1_uci        ia1_z       ia2_n0       ia2_n1       ia2_x0 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.08348900   0.32591324  -1.16057691  67.00000000  67.00000000  10.00000000 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       ia2_x1       ia2_p0       ia2_p1       ia2_pe      ia2_lci      ia2_uci </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  22.00000000   0.14925373   0.32835821   0.17910448   0.03794885   0.32026010 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        ia2_z </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  -2.48688870 </span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">#User defined function that reproduces the default setting</span></span></span>
+<span class="r-in"><span><span class="va">efun</span><span class="op">&lt;-</span><span class="kw">function</span><span class="op">(</span><span class="va">out</span>,<span class="va">cilevel</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="va">xs</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">out</span>,<span class="va">sum</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="va">ns</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">out</span>,<span class="va">length</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="va">pe</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="va">xs</span><span class="op">/</span><span class="va">ns</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="va">se</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">xs</span><span class="op">/</span><span class="va">ns</span><span class="op">*</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">xs</span><span class="op">/</span><span class="va">ns</span><span class="op">)</span><span class="op">/</span><span class="va">ns</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="va">lci</span><span class="op">&lt;-</span><span class="va">pe</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">qnorm</a></span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">cilevel</span><span class="op">)</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span><span class="op">*</span><span class="va">se</span></span></span>
+<span class="r-in"><span>  <span class="va">uci</span><span class="op">&lt;-</span><span class="va">pe</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">qnorm</a></span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">cilevel</span><span class="op">)</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span><span class="op">*</span><span class="va">se</span></span></span>
+<span class="r-in"><span>  <span class="va">z</span><span class="op">&lt;-</span><span class="op">(</span><span class="op">-</span><span class="va">pe</span><span class="op">)</span><span class="op">/</span><span class="va">se</span></span></span>
+<span class="r-in"><span>  <span class="va">res</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">pe</span>,<span class="va">lci</span>,<span class="va">uci</span>,<span class="va">z</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pe"</span>,<span class="st">"lci"</span>,<span class="st">"uci"</span>,<span class="st">"z"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">tfun</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">ADsim</span><span class="op">(</span>n01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>,<span class="fl">100</span><span class="op">)</span>, par01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.4</span>,<span class="fl">0.2</span><span class="op">)</span>, nia <span class="op">=</span> <span class="fl">1</span>, estfun <span class="op">=</span> <span class="va">efun</span>, truefun <span class="op">=</span> <span class="va">tfun</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     true_pe       fa_n0       fa_n1       fa_pe      fa_lci      fa_uci </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.2000000 100.0000000 100.0000000  -0.2500000  -0.3728227  -0.1271773 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        fa_z      ia1_n0      ia1_n1      ia1_pe     ia1_lci     ia1_uci </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   3.9894181  50.0000000  50.0000000  -0.3200000  -0.4883288  -0.1516712 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       ia1_z </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   3.7259715 </span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">#Continuous outcome </span></span></span>
+<span class="r-in"><span><span class="va">par01</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>,<span class="fl">1</span>,<span class="fl">5.5</span>,<span class="fl">1</span><span class="op">)</span>,<span class="fl">2</span>,<span class="fl">2</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">par01</span><span class="op">)</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mean"</span>,<span class="st">"sd"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">ADsim</span><span class="op">(</span>n01 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>,<span class="fl">100</span><span class="op">)</span>, par01 <span class="op">=</span> <span class="va">par01</span>, nia <span class="op">=</span> <span class="fl">1</span>, estfun <span class="op">=</span> <span class="st">"md_t"</span>, simfun<span class="op">=</span><span class="st">"norm"</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     true_pe       fa_n0       fa_n1    fa_mean0    fa_mean1      fa_sd0 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.5000000 100.0000000 100.0000000   4.9621919   5.5296735   0.9578791 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      fa_sd1       fa_pe      fa_lci      fa_uci        fa_z      ia1_n0 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   1.0342655   0.5674816   0.2894774   0.8454858   4.0255656  50.0000000 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      ia1_n1   ia1_mean0   ia1_mean1     ia1_sd0     ia1_sd1      ia1_pe </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  50.0000000   4.8475146   5.4686883   0.8997394   1.0948312   0.6211737 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     ia1_lci     ia1_uci       ia1_z </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.2232821   1.0190654   3.0995317 </span>
 </code></pre></div>
     </div>
   </div>
